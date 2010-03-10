@@ -8,6 +8,8 @@ var ModularGrid = {
 	opacity: 0.5,
 	/** @type {Number} */
 	opacityStyleString: null,
+	/** @type {Boolean} */
+	centered: true,
 	/** @type {Number} */
 	fluid: false,
 	/** @type {String} */
@@ -61,6 +63,7 @@ var ModularGrid = {
 				this.fluid = this.getParam(params, "fluid", this.fluid);				
 				this.color = this.getParam(params, "color", this.color);
 
+				this.centered = this.getParam(params, "centered", this.centered);
 				this.hDivisions = this.getParam(params, "hDivisions", this.hDivisions);				
 				this.vDivisions = this.getParam(params, "vDivisions", this.vDivisions);
 				this.gutter = this.getParam(params, "gutter", this.gutter);
@@ -165,11 +168,22 @@ var ModularGrid = {
 			if ( this.width )
 				html = '<div style="height:100%;width:100%;min-width:' + this.width + 'px">' + html +'</div>';
 			
-			if ( !this.fluid && this.width )
-				html = '<div style="width:' + this.width + 'px;height:100%;margin:0 auto">' + html +'</div>';
-				
-			html = '<div style="position:absolute;left:' + this.marginLeft + 'px;right:' + this.marginRight + 'px;top:' + this.marginTop + 'px;height:' + (this.getClientHeight() - this.marginTop) + 'px;text-align:center">' + html +'</div></div>';
-			return html;
+			if ( !this.fluid && this.width ) {
+				var newHtml = '<div style="width:' + this.width + 'px;height:100%;';
+				if ( this.centered )
+					newHtml += 'margin:0 auto';
+
+				newHtml += '">' + html +'</div>';
+				html = newHtml;
+			}
+
+			
+			var newHtml = '<div style="position:absolute;left:' + this.marginLeft + 'px;right:' + this.marginRight + 'px;top:' + this.marginTop + 'px;height:' + (this.getClientHeight() - this.marginTop) + 'px;';
+			if ( this.centered )
+				newHtml += 'text-align:center';
+			newHtml += '">' + html +'</div>';
+
+			return newHtml;
 		},
 
 	/**
@@ -313,6 +327,7 @@ ModularGrid.init(
 		zindex: 255,	
 		opacity: 0.5,
 
+		centered: true,
 		fluid: false,
 		width: 464,
 
