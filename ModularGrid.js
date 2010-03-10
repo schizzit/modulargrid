@@ -43,7 +43,9 @@ var ModularGrid = {
 	/** @type {Element} */
 	parentElement: null,
 	/** @type {Element} */
-	documentBodyElement: null,	
+	documentBodyElement: null,
+	/** @type {String} */
+	cookieName: "__ModularGrid",
 
 	/**
 	 * Устанавливает параметры сетки, добавляет показ по нажатию клавиш,
@@ -77,10 +79,15 @@ var ModularGrid = {
 				this.marginTop = this.getParam(params, "marginTop", this.marginTop);
 				this.marginLeft = this.getParam(params, "marginLeft", this.marginLeft);
 				this.marginRight = this.getParam(params, "marginRight", this.marginRight);
+				
+				this.cookieName = this.getParam(params, "cookieName", this.cookieName);
 			}
 
 			if ( !this.handlersAdded )
 				this.handlersAdded = this.addHandlers();
+			
+			if ( this.getVisibilityCookieValue() )
+				this.toggleVisibility();
 		},
 	
 	/**
@@ -116,13 +123,42 @@ var ModularGrid = {
 			}
 			
 			var displayValue = "block";
-			if ( this.showing )
-				displayValue = "none";
+			if ( this.showing )				
+				displayValue = "none";			
 
 			this.parentElement.style.display = displayValue;				
-			this.showing = !this.showing;			
+			this.showing = !this.showing;
+			
+			this.updateVisibilityCookieValue( this.showing );
 		},
 
+	/**
+	 * @private
+	 * Удаляет или сохраняет параметр показа сетки в cookie
+	 * @param {Boolean} visible true, если нужно сохранить куку, false если нужно стереть
+	 */
+	updateVisibilityCookieValue:
+		function ( visible ) {
+			var forever = new Date();
+			var yearIncrement = 1;
+			
+			if ( !visible )
+				yearIncrement = -1;
+
+			forever.setYear(forever.getFullYear() + yearIncrement);
+			
+			document.cookie = this.cookieName + "=1;expires=" + forever.toString();
+		},
+	
+	/**
+	 * @private
+	 * @return {Boolean} true, если значение куки установлено
+	 */
+	getVisibilityCookieValue:
+		function () {
+			return (document.cookie.indexOf(this.cookieName + "=1") > -1);
+		},
+		
 	/**
 	 * @private
 	 * @param {Element} parentElement контейнер для сетки
