@@ -20,8 +20,12 @@ var ModularGrid = {
 	vDivisions: 6,
 	/** @type {Number} */
 	marginLeft: 18,
+	/** @type {String} */
+	marginLeftStyleString: null,
 	/** @type {Number} */
 	marginRight: 18,
+	/** @type {String} */
+	marginRightStyleString: null,
 	/** @type {Number} */
 	width: 464,	
 	/** @type {Number} */
@@ -174,6 +178,39 @@ var ModularGrid = {
 			var body = this.getDocumentBodyElement().appendChild(parentElement);
 		},
 
+	getMarginLeftStyleString:
+		function () {
+			if ( this.marginLeftStyleString == null )
+				this.marginLeftStyleString = this.getMarginStyleString(this.marginLeft);
+			
+			return this.marginLeftStyleString;
+		},
+
+	getMarginRightStyleString:
+		function () {
+			if ( this.marginRightStyleString == null )
+				this.marginRightStyleString = this.getMarginStyleString(this.marginRight);
+			
+			return this.marginRightStyleString;
+		},
+	
+	/**
+	 * @private
+	 * @param {String|Number} propertyValue значение поля margin
+	 * @return {String} значение строки стиля
+	 */
+	getMarginStyleString:
+		function (propertyValue) {
+			/** @type {String} */
+			var value = propertyValue + "";
+			var result = value;
+			
+			if ( value.substr(value.length - 1) != "%" )
+				result += "px";
+			
+			return result;
+		},
+	
 	/**
 	 * @private
 	 * @return {String} HTML для отображения вертикальной модульной сетки
@@ -214,7 +251,7 @@ var ModularGrid = {
 			}
 
 			
-			var newHtml = '<div style="position:absolute;left:' + this.marginLeft + 'px;right:' + this.marginRight + 'px;top:' + this.marginTop + 'px;height:' + (this.getClientHeight() - this.marginTop) + 'px;';
+			var newHtml = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:' + this.marginTop + 'px;height:' + (this.getClientHeight() - this.marginTop) + 'px;';
 			if ( this.centered )
 				newHtml += 'text-align:center';
 			newHtml += '">' + html +'</div>';
@@ -232,7 +269,7 @@ var ModularGrid = {
 			var horizontalDivInnerHTML = "";
 
 			// создаём вертикальную шрифтовую сетку
-			var fontDivPrefix = '<div style="position:absolute;left:' + this.marginLeft + 'px;right:' + this.marginRight + 'px;top:';
+			var fontDivPrefix = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:';
 			var fontDivPostfix = 'px;height:0;border-bottom:' + this.lineWidth + 'px solid ' + this.lineColor + ';' + this.getOpacityStyleString() + '"></div>';
 			
 			var height = (this.getClientHeight() + this.lineBelowCount * this.lineHeight ) - this.marginTop;
@@ -242,7 +279,7 @@ var ModularGrid = {
 			var hCounterMax = this.hDivisions + 1;
 			var hHeight = this.lineHeight * this.hDivisions;
 
-			var horizontalDivPrefix = '<div style="position:absolute;left:' + this.marginLeft + 'px;right:' + this.marginRight + 'px;height:' + hHeight + 'px;background:' + this.color + ';top:';
+			var horizontalDivPrefix = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';height:' + hHeight + 'px;background:' + this.color + ';top:';
 			var horizontalDivPostfix = 'px;' + this.getOpacityStyleString() + '"></div>';
 
 			while ( y < height ) {
@@ -374,7 +411,7 @@ ModularGrid.init(
 		hDivisions: 4,
 
 		marginTop: 18,
-		marginLeft: 18,
+		marginLeft: "20%",
 		marginRight: 18,
 			
 		lineHeight: 16,
