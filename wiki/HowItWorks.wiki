@@ -1,13 +1,13 @@
-#summary One-sentence summary of this page.
+#summary Описание работы ModularGrid'а
 
-= Introduction =
+= Инициализация =
 
-Add your content here.
+Сначала вызвается ModularGrid.init(settings), settings — объект с параметрами сетки.
 
+ModularGrid.init добавляет обработчики событий:
+* нажатия клавиш (для показа/сокрытия сетки)
+* изменения размера окна браузера (для увеличения размера сетки по высоте)
 
-= Details =
+= Сокрытие/показ сетки =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+= Увеличение размера сетки по высоте =
