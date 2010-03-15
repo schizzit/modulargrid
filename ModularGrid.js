@@ -10,10 +10,12 @@ var ModularGrid = {
 	opacityStyleString: null,
 	/** @type {Boolean} */
 	centered: true,
-	/** @type {Number} */
-	fluid: false,
 	/** @type {String} */
 	color: "#F00",
+	/** @type {Boolean} */
+	prependGutter: false,
+	/** @type {Boolean} */
+	appendGutter: false,
 	/** @type {Number} */
 	gutter: 16,	
 	/** @type {Number} */
@@ -26,8 +28,12 @@ var ModularGrid = {
 	marginRight: 18,
 	/** @type {String} */
 	marginRightStyleString: null,
-	/** @type {Number} */
+	/** @type {Number|String} */
 	width: 464,	
+	/** @type {Number} */
+	minWidth: 464,
+	/** @type {Number} */
+	maxWidth: null,
 	/** @type {Number} */
 	lineHeight: 16,
 	/** @type {Number} */
@@ -66,14 +72,17 @@ var ModularGrid = {
 				
 				this.opacity = this.getParam(params, "opacity", this.opacity);
 				this.zindex = this.getParam(params, "zindex", this.zindex);
-				this.fluid = this.getParam(params, "fluid", this.fluid);				
 				this.color = this.getParam(params, "color", this.color);
 
 				this.centered = this.getParam(params, "centered", this.centered);
 				this.hDivisions = this.getParam(params, "hDivisions", this.hDivisions);				
 				this.vDivisions = this.getParam(params, "vDivisions", this.vDivisions);
+				this.prependGutter = this.getParam(params, "prependGutter", this.prependGutter);
+				this.appendGutter = this.getParam(params, "appendGutter", this.appendGutter);
 				this.gutter = this.getParam(params, "gutter", this.gutter);
 				this.width = this.getParam(params, "width", this.width);
+				this.minWidth = this.getParam(params, "minWidth", this.minWidth);
+				this.maxWidth = this.getParam(params, "maxWidth", this.maxWidth);
 				
 				this.lineHeight = this.getParam(params, "lineHeight", this.lineHeight);
 				this.lineWidth = this.getParam(params, "lineWidth", this.lineWidth);
@@ -219,44 +228,43 @@ var ModularGrid = {
 		function () {
 			var html = '';
 			
-			var width = this.width + this.gutter;
-			var containerWidth = ((width - (this.vDivisions) * this.gutter) / this.vDivisions) + this.gutter;
-
+			var fluid = ( this.width.substr && this.width.substr(this.width.length - 1) == "%" );			
+			var width = (fluid ? this.minWidth : this.width);
 			
-			var containerPercent =  (containerWidth / this.width) * 100;
-
-			var gutterPercent = (this.gutter / this.width) * 100;
-			var columnPercent = 100 - (this.gutter / containerWidth) * 100;
+			// создаём вертикальную сетку
+			var gutterCount = this.vDivisions - 1;
+			if ( this.prependGutter )
+				gutterCount++;
+			if ( this.appendGutter )
+				gutterCount++;
 			
-			var lastContainerIndex = this.vDivisions - 1;
-			for(var i = 0, length = this.vDivisions; i < length; i++ ) {
-				if ( i == lastContainerIndex ) {
-					containerPercent -= gutterPercent;
-					columnPercent = 100;
-				}
-
-				html += '<div style="float:left;height:100%;width:' + containerPercent + '%"><div style="float:left;height:100%;width:' + columnPercent + '%;background:' + this.color + ';' + this.getOpacityStyleString() + '"></div></div>';
+			var gutterPercent = (this.gutter / width) * 100;
+			var divisionPercent = (100 - gutterCount * gutterPercent) / this.vDivisions;
+			
+			var x = (this.prependGutter ? gutterPercent : 0)
+			for(var i = 0, length = this.vDivisions; i < length; i++) {
+				html += '<div style="position:relative;left:' + x + '%;float:left;margin-right:-' + divisionPercent + '%;height:100%;width:' + divisionPercent + '%;background:' + this.color + ';' + this.getOpacityStyleString() + '"></div>';
+				x += gutterPercent + divisionPercent;
 			}
 			
-			if ( this.width )
-				html = '<div style="height:100%;width:100%;min-width:' + this.width + 'px">' + html +'</div>';
+			// создаём контейнер колонок (центрирование, фиксация ширины и т.п.)
+			var containerWidth;
+			var containerStyleString = "";
 			
-			if ( !this.fluid && this.width ) {
-				var newHtml = '<div style="width:' + this.width + 'px;height:100%;';
-				if ( this.centered )
-					newHtml += 'margin:0 auto';
-
-				newHtml += '">' + html +'</div>';
-				html = newHtml;
+			if ( fluid ) {
+				containerWidth = this.width;				
+			}
+			else {
+				containerWidth = width;
 			}
 
-			
-			var newHtml = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:' + this.marginTop + 'px;height:' + (this.getClientHeight() - this.marginTop) + 'px;';
 			if ( this.centered )
-				newHtml += 'text-align:center';
-			newHtml += '">' + html +'</div>';
-
-			return newHtml;
+				html = '<div style="width:100%;height:100%;text-align:center"><div style="width:' + containerWidth + ';height:100%;margin:0 auto;' + containerStyleString + '">' + html + '</div></div>';
+			else
+				html = '<div style="width:' + containerWidth + ';height:100%;' + containerStyleString + '">' + html + '</div>';
+			html = '<div style="height:100%;padding: 0 ' + this.getMarginRightStyleString() + ' 0 ' + this.getMarginLeftStyleString() + '">' + html + '</div>';
+					
+			return html;
 		},
 
 	/**
@@ -268,8 +276,7 @@ var ModularGrid = {
 			var fontDivInnerHTML = "";
 			var horizontalDivInnerHTML = "";
 
-			// создаём вертикальную шрифтовую сетку
-			var fontDivPrefix = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:';
+			var fontDivPrefix = '<div style="float:none;position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:';
 			var fontDivPostfix = 'px;height:0;border-bottom:' + this.lineWidth + 'px solid ' + this.lineColor + ';' + this.getOpacityStyleString() + '"></div>';
 			
 			var height = (this.getClientHeight() + this.lineBelowCount * this.lineHeight ) - this.marginTop;
@@ -279,7 +286,7 @@ var ModularGrid = {
 			var hCounterMax = this.hDivisions + 1;
 			var hHeight = this.lineHeight * this.hDivisions;
 
-			var horizontalDivPrefix = '<div style="position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';height:' + hHeight + 'px;background:' + this.color + ';top:';
+			var horizontalDivPrefix = '<div style="float:none;position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';height:' + hHeight + 'px;background:' + this.color + ';top:';
 			var horizontalDivPostfix = 'px;' + this.getOpacityStyleString() + '"></div>';
 
 			while ( y < height ) {
@@ -364,8 +371,9 @@ var ModularGrid = {
 	 */
 	getClientHeight:
 		function () {
-			var height = document.documentElement.clientHeight;
-			height = this.getDocumentBodyElement().offsetHeight;
+			var height = Math.max(document.documentElement.clientHeight, this.getDocumentBodyElement().offsetHeight);
+			height = Math.max(height, window.scrollMaxY);
+			height = Math.max(height, document.documentElement.scrollHeight);
 
 			return height;
 		},
@@ -400,19 +408,20 @@ ModularGrid.init(
 		zindex: 255,	
 		opacity: 0.5,
 
-		centered: true,
-		fluid: false,
-		width: 464,
+		centered: false,
+		width: "100%",
 
 		color: "#F00",
 
-		gutter: 16,	
+		gutter: 16,
+		prependGutter: true,
+		appendGutter: true,
 		vDivisions: 6,
 		hDivisions: 4,
 
 		marginTop: 18,
-		marginLeft: "20%",
-		marginRight: 18,
+		marginLeft: "10%",
+		marginRight: "10%",
 			
 		lineHeight: 16,
 		lineWidth: 1,
