@@ -1,5 +1,5 @@
 #summary Настройки центрированной сетки фиксированной ширины
 
 = Настройки центрированной сетки фиксированной ширины =
- # подключите ModularGrid, вставив тег <script type="text/javascript" src="/js/ModularGrid.js"></script> перед тегом </body>
+ # подключите ModularGrid, вставив тег &lt;script type="text/javascript" src="/js/ModularGrid.js"&gt;&lt;/script&gt; перед тегом &lt;/body&gt;
  # в файле /js/ModularGrid.js замените вызов функции ModularGrid.init на ModularGrid.init( { width: 600, centered: true } ), где 600 — ширина сетки в пикселах.
