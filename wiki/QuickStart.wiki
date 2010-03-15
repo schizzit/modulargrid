@@ -4,24 +4,24 @@
 
 = Список настраиваемых параметров =
 
- # === shouldTriggerKeyDown: function (event, keyCode) { return (event.ctrlKey && keyCode == 192); } ===
+=== shouldTriggerKeyDown: function (event, keyCode) { return (event.ctrlKey && keyCode == 192); } ===
 Назначте горячие клавиши, которые вам будут максимально удобны. По умолчанию это CTRL+~
- # === zindex: 255 ===
+=== zindex: 255 ===
 Регулируйте положение сетки-камертона относительно вашей страницы параметром zindex. Если параметр zindex будет большим, то сетка будет находится поверх вашей страницы.
- # === opacity: 0.5 ===
+=== opacity: 0.5 ===
 Парамет opacity отвечает за прозрачность ModularGrid. 0 — сетка абсолютно прозрачна. 1 — сетка непрозрачна.
- # === centered: false ===
- # === width: "100%" ===
- # === color: "#F00" ===
- # === gutter: 16 ===
- # === prependGutter: true ===
- # === appendGutter: true ===
- # === vDivisions: 6 ===
- # === hDivisions: 4 ===
- # === marginTop: 18 ===
- # === marginLeft: "10%" ===
- # === marginRight: "10%" ===
- # === lineHeight: 16 ===
- # === lineWidth: 1 ===
- # === lineColor: "#555" ===
- # === lineBelowCount: 2 ===
+=== centered: false ===
+=== width: "100%" ===
+=== color: "#F00" ===
+=== gutter: 16 ===
+=== prependGutter: true ===
+=== appendGutter: true ===
+=== vDivisions: 6 ===
+=== hDivisions: 4 ===
+=== marginTop: 18 ===
+=== marginLeft: "10%" ===
+=== marginRight: "10%" ===
+=== lineHeight: 16 ===
+=== lineWidth: 1 ===
+=== lineColor: "#555" ===
+=== lineBelowCount: 2 ===
