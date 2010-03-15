@@ -2,21 +2,21 @@
 
 = Список настраиваемых параметров =
 
- # == shouldTriggerKeyDown: function (event, keyCode) { return (event.ctrlKey && keyCode == 192); } ==
- # == zindex: 255 ==
- # == opacity: 0.5 ==
- # == centered: false ==
- # == width: "100%" ==
- # == color: "#F00" ==
- # == gutter: 16 ==
- # == prependGutter: true ==
- # == appendGutter: true ==
- # == vDivisions: 6 ==
- # == hDivisions: 4 ==
- # == marginTop: 18 ==
- # == marginLeft: "10%" ==
- # == marginRight: "10%" ==
- # == lineHeight: 16 ==
- # == lineWidth: 1 ==
- # == lineColor: "#555" ==
- # == lineBelowCount: 2 ==
+ # === shouldTriggerKeyDown: function (event, keyCode) { return (event.ctrlKey && keyCode == 192); } ===
+ # === zindex: 255 ===
+ # === opacity: 0.5 ===
+ # === centered: false ===
+ # === width: "100%" ===
+ # === color: "#F00" ===
+ # === gutter: 16 ===
+ # === prependGutter: true ===
+ # === appendGutter: true ===
+ # === vDivisions: 6 ===
+ # === hDivisions: 4 ===
+ # === marginTop: 18 ===
+ # === marginLeft: "10%" ===
+ # === marginRight: "10%" ===
+ # === lineHeight: 16 ===
+ # === lineWidth: 1 ===
+ # === lineColor: "#555" ===
+ # === lineBelowCount: 2 ===
