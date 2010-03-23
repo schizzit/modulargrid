@@ -41,8 +41,6 @@ var ModularGrid = {
 	/** @type {String} */
 	lineColor: "#555",
 	/** @type {Number} */
-	lineBelowCount: 2,
-	/** @type {Number} */
 	marginTop: 18,
 	/** @type {Number} */
 	hDivisions: 4,	
@@ -87,7 +85,6 @@ var ModularGrid = {
 				this.lineHeight = this.getParam(params, "lineHeight", this.lineHeight);
 				this.lineWidth = this.getParam(params, "lineWidth", this.lineWidth);
 				this.lineColor = this.getParam(params, "lineColor", this.lineColor);
-				this.lineBelowCount = this.getParam(params, "lineBelowCount", this.lineBelowCount);
 				
 				this.marginTop = this.getParam(params, "marginTop", this.marginTop);
 				this.marginLeft = this.getParam(params, "marginLeft", this.marginLeft);
@@ -228,7 +225,7 @@ var ModularGrid = {
 		function () {
 			var html = '';
 			
-			var fluid = ( this.width.substr && this.width.substr(this.width.length - 1) == "%" );			
+			var fluid = ( typeof(this.width) == "string" && this.width.substr(this.width.length - 1) == "%" );			
 			var width = (fluid ? this.minWidth : this.width);
 			
 			// создаём вертикальную сетку
@@ -255,7 +252,7 @@ var ModularGrid = {
 				containerWidth = this.width;				
 			}
 			else {
-				containerWidth = width;
+				containerWidth = width + "px";
 			}
 
 			if ( this.centered )
@@ -279,7 +276,7 @@ var ModularGrid = {
 			var fontDivPrefix = '<div style="float:none;position:absolute;left:' + this.getMarginLeftStyleString() + ';right:' + this.getMarginRightStyleString() + ';top:';
 			var fontDivPostfix = 'px;height:0;border-bottom:' + this.lineWidth + 'px solid ' + this.lineColor + ';' + this.getOpacityStyleString() + '"></div>';
 			
-			var height = (this.getClientHeight() + this.lineBelowCount * this.lineHeight ) - this.marginTop;
+			var height = this.getClientHeight();
 			var y = this.marginTop;
 			
 			var hCounter = 0;
@@ -403,6 +400,14 @@ var ModularGrid = {
 
 ModularGrid.init(
 	{
+		width: 426,
+		centered: true,
+		
+		marginLeft: 10,
+		marginRight: 10,
+		
+		marginTop: 100
+/*		
 		shouldTriggerKeyDown: function (event, keyCode) { return (event.ctrlKey && keyCode == 192); },
 
 		zindex: 255,	
@@ -426,6 +431,6 @@ ModularGrid.init(
 		lineHeight: 16,
 		lineWidth: 1,
 		lineColor: "#555",
-		lineBelowCount: 2			
+					*/
 	}
 );
