@@ -1,0 +1,1259 @@
+/** @namespace */
+var ModularGrid = {};/** @include "../index.js" */
+ModularGrid.Utils = {};/** @include "index.js" */
+
+/**
+ * Обертка события от браузера.
+ * @constructor
+ * @param {String} eventName название события, например "keydown"
+ * @param {Function} prepareParams преобразователь event браузера в хеш для обработчика
+ * @return {ModularGrid.EventProvider}
+ */
+ModularGrid.Utils.EventProvider = function(eventName, prepareParams) {
+	this.eventName = eventName;
+	this.prepareParams = prepareParams;
+
+	this.handlers = null;
+
+	return this;
+};
+
+/**
+ * Формирует хеш параметоров с помощью this.prepareParams и вызывает все обработчики
+ * @private
+ * @param {Object} event
+ */
+ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
+	var params = (this.prepareParams ? this.prepareParams(event) : event);
+
+	for(var i = 0, length = this.handlers.length; i < length; i++)
+		this.handlers[i](params);
+};
+
+/**
+ * Создает массив обработчиков, вешает обработчик события браузера
+ * @private
+ */
+ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
+	this.handlers = [];
+
+	var code = 'document.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
+
+	var self = this;
+	eval(code);
+};
+
+/**
+ * Добавляет обработчик события в конец очереди обработчиков
+ * @param {Function} handler обработчик события
+ */
+ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
+	if ( this.handlers == null )
+		this.initHandlers();
+
+	this.handlers.push(handler);
+};/** @include "index.js" */
+
+/**
+ * Меняет состояние объекта по внешнему событию.
+ * @constructor
+ * @param {ModularGrid.EventProvider} eventProvider прослойка, чье событие слушать
+ * @param {Function} shouldChange если вернет true при возникновении события от eventProvider, то вызовится stateChange
+ * @param {Function} stateChange вызывается, когда нужно поменять состояние
+ * @return {ModularGrid.StateChanger}
+ */
+ModularGrid.Utils.StateChanger = function (eventProvider, shouldChange, stateChange) {
+	eventProvider.addHandler(
+		function (params) {
+			if ( shouldChange(params) )
+				stateChange();
+		}
+	);
+
+	return this;
+};
+/** @include "namespace.js" */
+
+/**
+ * @return {Number} высота области для сетки в пикселах
+ */
+ModularGrid.Utils.getClientHeight = function () {
+	var height = Math.max(document.documentElement.clientHeight, this.getDocumentBodyElement().offsetHeight);
+
+	if ( window.scrollMaxY )
+		height = Math.max(height, window.scrollMaxY);
+
+	if ( document.documentElement.scrollHeight )
+		height = Math.max(height, document.documentElement.scrollHeight);
+
+	return height;
+};
+
+/**
+ * @return {Number} ширина области для сетки в пикселах
+ */
+ModularGrid.Utils.getClientWidth = function () {
+	var width = document.documentElement.clientWidth;
+	return width;
+};
+
+ModularGrid.Utils.documentBodyElement = null;
+/**
+* @private
+* @return {Element} body
+*/
+ModularGrid.Utils.getDocumentBodyElement = function () {
+	if ( this.documentBodyElement == null )
+		this.documentBodyElement = document.getElementsByTagName("body")[0];
+
+	return this.documentBodyElement;
+};
+
+/**
+ * Сливает два хэша
+ * @private
+ * @param {Object} defaults значения по-умолчанию
+ * @param {Object} params переопределенные значения
+ * @return {Object} объект из ключей и значений по-умолчанию и новых значений
+ */
+ModularGrid.Utils.createParams = function (defaults, params) {
+	var result = {};
+
+	for ( var key in defaults )
+		result[key] = defaults[key];
+
+	for ( var key in params )
+		result[key] = params[key];
+
+	return result;
+};
+
+ModularGrid.Utils.defaultStyleValueParams =
+	{
+		display: 'block',
+		width: '100%',
+		height: '100%',
+		opacity: 1.0,
+		background: 'transparent',
+		'float': 'none',
+		visibility: 'visible',
+		border: '0'
+	};
+/**
+ * Возвращает CSS-строку для свойства style
+ * @private
+ * @param {Object} params параметры для строки
+ * @return {String} CSS-строка для свойства style
+ */
+ModularGrid.Utils.createStyleValue = function (params) {
+	var styleParams = ModularGrid.Utils.createParams(ModularGrid.Utils.defaultStyleValueParams, params);
+
+	var result = '';
+	for (var key in styleParams) {
+		if ( styleParams[key] )
+			result += key + ':' + styleParams[key] + ';';
+
+		if ( styleParams[key] == 'opacity')
+			result += '-khtml-opacity:' + styleParams[key] + ';-moz-opacity:' + styleParams[key] + ';filter:progid:DXImageTransform.Microsoft.Alpha(opacity=' + (styleParams[key] * 100) + ');';
+	}
+
+	return result;
+};/** @include "../index.js" */
+
+ModularGrid.Image = {};/** @include "index.js" */
+
+ModularGrid.Image.defaults = {
+	shouldStepUpOpacity:
+		function (params) {
+			// Ctrl + ]
+			var result = (params.ctrlKey && params.keyCode == 221);
+			return result;
+		},
+	shouldStepDownOpacity:
+		function (params) {
+			// Ctrl + [
+			var result = (params.ctrlKey && params.keyCode == 219);
+			return result;
+		},
+	shouldToggleVisibility:
+		function (params) {
+			var result = (params.ctrlKey && params.keyCode == 220);
+			return result;
+		},
+
+	'z-index': 255,
+
+	opacity: 0.85,
+	opacityStep: 0.05,
+
+	centered: false,
+
+	marginTop: 0,
+	marginLeft: '0px',
+	marginRight: '0px',
+
+	width: 100,
+	height: 100
+};/** @include "namespace.js" */
+
+ModularGrid.Image.showing = false;
+ModularGrid.Image.parentElement = null;
+
+ModularGrid.Image.params = null;
+
+ModularGrid.Image.imgElement = null;
+
+/**
+ * Устанавливает настройки для гайдов
+ * @param {Object} params параметры гайдов
+ */
+ModularGrid.Image.init = function (params) {
+	this.params = ModularGrid.Utils.createParams(this.defaults, params);
+};
+
+/**
+ * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+ * @private
+ * @param {Object} params параметры создания элемента и гайдов
+ * @return {Element} корневой HTML-элемент
+ */
+ModularGrid.Image.createParentElement = function (params) {
+	// создаем элемент и ресетим style
+	var parentElement = document.createElement("div");
+
+	var parentElementStyle =
+		{
+			position: 'absolute',
+			left: '0',
+			top: '0',
+
+			width: '100%',
+			height: params.height + 'px',
+
+			'z-index': params['z-index']
+		};
+
+//	if ( params.centered )
+//		parentElementStyle['text-align'] = 'center';
+
+	parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
+
+	// создаём HTML гайдов
+	parentElement.appendChild(this.createImageDOM(params));
+
+	// добавляем элемент в DOM
+	ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
+
+	return parentElement;
+};
+
+/**
+ * Создает HTML-строку для отображения гайдов
+ * @private
+ * @param {Array} items массив настроек для создания гайдов
+ * @return {String} HTML-строка для отображения гайдов
+ */
+ModularGrid.Image.createImageDOM = function (params) {
+	var imageStyle =
+		{
+			width: 'auto',
+			height: 'auto',
+
+			opacity: params.opacity
+		};
+	var imageContainerStyle =
+		{
+			'padding-top': params.marginTop + 'px',
+
+			width: 'auto',
+			height: 'auto'
+		};
+
+	if ( params.centered ) {
+		imageContainerStyle['text-align'] = 'center';
+		imageStyle.margin = '0 auto';
+	}
+	else {
+		imageContainerStyle['padding-left'] = params.marginLeft,
+		imageContainerStyle['padding-right'] = params.marginRight
+	};
+
+	var imageDOMParent = document.createElement('div');
+	imageDOMParent.setAttribute("style", ModularGrid.Utils.createStyleValue(imageContainerStyle));
+
+	this.imgElement = document.createElement('img');
+	this.imgElement.setAttribute('src', params.src);
+	this.imgElement.setAttribute('width', params.width);
+	this.imgElement.setAttribute('height', params.height);
+	this.imgElement.setAttribute('style', ModularGrid.Utils.createStyleValue(imageStyle));
+
+	imageDOMParent.appendChild(this.imgElement);
+
+	return imageDOMParent;
+};
+
+ModularGrid.Image.stepDownOpacity = function () {
+	this.params.opacity -= this.params.opacityStep;
+	this.params.opacity = ( this.params.opacity < 0 ? 0.0 : this.params.opacity );
+
+	this.updateOpacity( this.params.opacity );
+};
+
+ModularGrid.Image.stepUpOpacity = function () {
+	this.params.opacity += this.params.opacityStep;
+	this.params.opacity = ( this.params.opacity > 1 ? 1.0 : this.params.opacity );
+
+	this.updateOpacity( this.params.opacity );
+};
+
+ModularGrid.Image.updateOpacity = function (opacity) {
+	if ( this.showing && this.imgElement )
+		this.imgElement.style.opacity = opacity;
+
+	console.log(this.imgElement.style.opacity);
+};
+
+/**
+ * Скрывает-показывает гайды
+ */
+ModularGrid.Image.toggleVisibility = function () {
+	this.showing = !this.showing;
+
+	if ( this.showing && this.parentElement == null ) {
+		this.parentElement = this.createParentElement(this.params);
+	}
+
+	if ( this.parentElement )
+		this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
+};/** @include "../index.js" */
+ModularGrid.Guides = {};/** @include "index.js */
+
+ModularGrid.Guides.defaults = {
+	shouldToggleVisibility:
+		function (params) {
+			var result = (params.ctrlKey && (params.keyCode == 59 || params.keyCode == 186));
+			return result;
+		},
+
+	lineStyle: 'solid',
+	lineColor: '#9dffff',
+	lineWidth: '1px',
+
+	'z-index': 255,
+
+	items: []
+};/** @include "namespace.js" */
+
+ModularGrid.Guides.showing = false;
+ModularGrid.Guides.parentElement = null;
+
+ModularGrid.Guides.params = null;
+
+/**
+ * Устанавливает настройки для гайдов
+ * @param {Object} params параметры гайдов
+ */
+ModularGrid.Guides.init = function (params) {
+	this.params = ModularGrid.Utils.createParams(this.defaults, params);
+};
+
+/**
+ * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+ * @private
+ * @param {Object} params параметры создания элемента и гайдов
+ * @return {Element} корневой HTML-элемент
+ */
+ModularGrid.Guides.createParentElement = function (params) {
+	// создаем элемент и ресетим style
+	var parentElement = document.createElement("div");
+
+	var parentElementStyleValue =
+		ModularGrid.Utils.createStyleValue(
+			{
+				position: 'absolute',
+				left: '0',
+				top: '0',
+
+				height: ModularGrid.Utils.getClientHeight() + 'px',
+				width: '100%',
+
+				'text-align': 'center',
+
+				'z-index': params['z-index']
+			}
+		);
+	parentElement.setAttribute("style", parentElementStyleValue);
+
+	// создаём HTML гайдов
+	parentElement.innerHTML = this.createGuidesHTML(params.items);
+
+	// добавляем элемент в DOM
+	ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
+
+	return parentElement;
+};
+
+/**
+ * Создает HTML-строку для отображения гайдов
+ * @private
+ * @param {Array} items массив настроек для создания гайдов
+ * @return {String} HTML-строка для отображения гайдов
+ */
+ModularGrid.Guides.createGuidesHTML = function (items) {
+	var html = '';
+
+	if ( items ) {
+		var currentItem, styleParams, borderStyle = this.params.lineWidth + ' ' + this.params.lineStyle + ' ' + this.params.lineColor + ' !important';
+		for(var i = 0, length = items.length; i < length; i++) {
+			currentItem = items[i];
+			styleParams = {
+				position: 'absolute'
+			};
+
+			switch ( currentItem.type ) {
+				case 'center':
+					styleParams.width = '100%';
+					styleParams.height = '100%';
+
+					var innerStyleParams =
+						{
+							width: currentItem.width,
+							height: '100%',
+
+							margin: '0 auto',
+
+							'border-left': borderStyle,
+							'border-right': borderStyle
+
+						};
+
+					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"><div style="' + ModularGrid.Utils.createStyleValue(innerStyleParams) + '"></div></div>';
+				break;
+
+				case 'vertical':
+					styleParams.width = '0px';
+					styleParams.height = '100%';
+
+					if ( currentItem.left != null ) {
+						styleParams.left = currentItem.left;
+						styleParams['border-right'] = borderStyle;
+					}
+
+					if ( currentItem.right != null ) {
+						styleParams.right = currentItem.right;
+						styleParams['border-left'] = borderStyle;
+					}
+
+					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
+				break;
+
+				case 'horizontal':
+					styleParams.width = '100%';
+					styleParams.height = '0px';
+
+					if ( currentItem.top != null ) {
+						styleParams.top = currentItem.top;
+						styleParams['border-bottom'] = borderStyle;
+					}
+
+					if ( currentItem.bottom != null ) {
+						styleParams.bottom = currentItem.bottom;
+						styleParams['border-top'] = borderStyle;
+					}
+
+					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
+				break;
+			}
+
+		};
+	}
+
+	return html;
+};
+
+/**
+ * Скрывает-показывает гайды
+ */
+ModularGrid.Guides.toggleVisibility = function () {
+	this.showing = !this.showing;
+
+	if ( this.showing && this.parentElement == null ) {
+		this.parentElement = this.createParentElement(this.params);
+	}
+
+	if ( this.parentElement )
+		this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
+};/** @include "../index.js" */
+ModularGrid.Grid = {};/** @include "index.js */
+
+/**
+ * Настройки для модульной сетки по-умолчанию
+ * @type Object
+ */
+ModularGrid.Grid.defaults = {
+	shouldToggleVerticalGridVisibility:
+		function (params) {
+			// Ctrl + Alt + v
+			// показать/скрыть вертикальные элементы сетки (колонки)
+			var result = (params.ctrlKey && params.altKey && params.keyCode == 86 );
+			return result;
+		},
+
+	shouldToggleHorizontalGridVisibility:
+		function (params) {
+			// Ctrl + Alt + h
+			// показать/скрыть горизонтальные элементы сетки (строки)
+			var result = (params.ctrlKey && params.altKey && params.keyCode == 72 );
+			return result;
+		},
+
+	shouldToggleFontGridVisibility:
+		function (params) {
+			// Ctrl + Alt + f
+			// показать/скрыть шрифтовую сетку
+			var result = (params.ctrlKey && params.altKey && params.keyCode == 70 );
+			return result;
+		},
+
+	shouldToggleVisibility:
+		function (params) {
+			// Ctrl + '
+			// показать/скрыть всю сетку
+			//   скрывает если хотя бы один из элементов сетки показан (шрифтовая, колонки или строки)
+			var result = (params.ctrlKey && params.keyCode == 222);
+			return result;
+		},
+
+	'z-index': 255,
+
+	/**
+	 * Прозрачность элементов модульной сетки.
+	 * 1.0 - непрозрачная, 0 - прозрачная
+	 * @type Number
+	 */
+	opacity: 0.2,
+
+	/**
+	 * Цвет фона колонок и строк модульной сетки.
+	 * Цвет линий шрифтовой сетки задаётся отдельно.
+	 * @see lineColor
+	 * @type String
+	 */
+	color: "#F00",
+
+	/**
+	 * Центрировать ли сетку
+	 * @type Boolean
+	 */
+	centered: true,
+
+	prependGutter: false,
+	appendGutter: false,
+
+	gutter: 16,
+
+	/**
+	 * Ширина столбца модульной сетки в строках модульной сетки
+	 * @see lineHeight
+	 * @type Number
+	 */
+	vDivisions: 6,
+
+	/**
+	 * Высота строки модульной сетки в строках модульной сетки.
+	 * @see lineHeight
+	 * @type Number
+	 */
+	hDivisions: 4,
+
+	/**
+	 * Отступ от верхнего края рабочей области браузера до сетки в пикселах.
+	 * @type Number
+	 */
+	marginTop: 0,
+	/**
+	 * Отступ от левого края рабочей области браузера до сетки.
+	 * Значения аналогичны значениям CSS-свойства margin-left
+	 * @type Number
+	 */
+	marginLeft: '18px',
+	/**
+	 * Отступ от правого края рабочей области браузера до сетки.
+	 * Значения аналогичны значениям CSS-свойства margin-right
+	 * @type Number
+	 */
+	marginRight: '18px',
+
+	width: 464,
+	minWidth: 464,
+	maxWidth: null,
+
+	/**
+	 * Высота строки в пикселах.
+	 * Используется для рисования шрифтовой сетки.
+	 * Сама линия сетки начинает рисоваться на (lineHeight + 1) пикселе
+	 * @type Number
+	 */
+	lineHeight: 16,
+
+	// стиль линий шрифтовой сетки
+	/**
+	 * Стиль линий шрифтовой сетки.
+	 * Значения аналогичны значениям CSS-свойства border-style
+	 * @type String
+	 */
+	lineStyle: 'solid',
+	/**
+	 * Толщина линий шрифтовой сетки.
+	 * Значения аналогичны значениям CSS-свойства border-width
+	 * @type String
+	 */
+	lineWidth: '1px',
+	/**
+	 * Цвет линий шрифтовой сетки.
+	 * Значения аналогичны значениям CSS-свойства border-color
+	 * @type String
+	 */
+	lineColor: "#555"
+};/** @include "namespace.js" */
+
+/**
+ * Показывается ли хотя бы один из элементов модульной сетки (шрифтовая сетка, столбцы или строки)
+ * @type Boolean
+ */
+ModularGrid.Grid.showing = false;
+
+ModularGrid.Grid.fontGridShowing = false;
+ModularGrid.Grid.fontGridParentElement = null;
+
+ModularGrid.Grid.horizontalGridShowing = false;
+ModularGrid.Grid.horizontalGridParentElement = null;
+
+ModularGrid.Grid.verticalGridShowing = false;
+ModularGrid.Grid.verticalGridParentElement = null;
+
+/**
+ * Параметры модульной сетки (значения по-умолчанию + пользваотельские настройки)
+ * @type Object
+ */
+ModularGrid.Grid.params = null;
+
+/**
+ * Устанавливает настройки для гайдов
+ * @param {Object} params параметры гайдов
+ */
+ModularGrid.Grid.init = function (params) {
+	this.params = ModularGrid.Utils.createParams(this.defaults, params);
+};
+
+/**
+ * Создает элементы-родители для элементов модульной сетки
+ * в порядке столбцы, строки, шрифтовая сетка и добавляет их в DOM
+ * @private
+ * @param {Object} params параметры создания элемента и гайдов
+ * @return {Element} корневой HTML-элемент модульной сетки
+ */
+ModularGrid.Grid.createParentElement = function (params) {
+	var parentElement = ModularGrid.Utils.getDocumentBodyElement();
+
+	parentElement.appendChild( this.createVerticalGridParentElement(params) );
+	parentElement.appendChild( this.createHorizontalGridParentElement(params) );
+	parentElement.appendChild( this.createFontGridParentElement(params) );
+
+	return parentElement;
+};
+
+ModularGrid.Grid.createVerticalGridParentElement = function (params) {
+	this.verticalGridParentElement = document.createElement('div');
+	this.verticalGridParentElement.setAttribute(
+		"style",
+		ModularGrid.Utils.createStyleValue(
+			{
+				position: 'absolute',
+				left: '0',
+				top: '0',
+
+				display: 'none',
+
+				height: ModularGrid.Utils.getClientHeight() + 'px',
+				width: '100%',
+
+				'z-index': params['z-index']
+			}
+		)
+	);
+
+	this.verticalGridParentElement.innerHTML = this.createVerticalGridHTML(params);
+
+	return this.verticalGridParentElement;
+};
+
+/**
+ * @private
+ * @return {String} HTML для отображения вертикальной модульной сетки
+ */
+ModularGrid.Grid.createVerticalGridHTML = function (params) {
+	var html = '';
+
+	var fluid = ( typeof(params.width) == "string" && params.width.substr(params.width.length - 1) == "%" );
+	var width = (fluid ? params.minWidth : params.width);
+
+	// создаём вертикальную сетку
+	var gutterCount = params.vDivisions - 1;
+	( params.prependGutter ? gutterCount++ : null );
+	( params.appendGutter ? gutterCount++ : null );
+
+	var gutterPercent = (params.gutter / width) * 100;
+	var divisionPercent = (100 - gutterCount * gutterPercent) / params.vDivisions;
+
+	var x = (params.prependGutter ? gutterPercent : 0);
+
+	var styleCSS =
+		{
+			position: 'relative',
+
+			'float': 'left',
+
+			'margin-right': '-' + divisionPercent + '%',
+
+			width: divisionPercent + '%',
+			height: '100%',
+
+			background: params.color,
+
+			opacity: params.opacity
+		};
+	for(var i = 0, length = params.vDivisions; i < length; i++) {
+		styleCSS.left = x + '%';
+		html += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+
+		x += gutterPercent + divisionPercent;
+	};
+
+	// создаём контейнер колонок (центрирование, фиксация ширины и т.п.)
+	var widthContainerStyle =
+		{
+			width: ( fluid ? params.width : width + 'px' )
+		};
+	if ( params.centered ) {
+		var centeredContainerStyle =
+			{
+				'text-align': 'center'
+			};
+		widthContainerStyle.margin = '0 auto';
+
+		html = '<div style="' + ModularGrid.Utils.createStyleValue(centeredContainerStyle) + '"><div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div></div>';
+	}
+	else
+		html = '<div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div>';
+
+	var marginContainerStyle =
+		{
+			width: 'auto',
+
+			padding: '0 ' + params.marginRight + ' 0 ' + params.marginLeft
+		};
+	html = '<div style="' + ModularGrid.Utils.createStyleValue(marginContainerStyle) + '">' + html + '</div>';
+
+	return html;
+};
+
+ModularGrid.Grid.createHorizontalGridParentElement = function (params) {
+	this.horizontalGridParentElement = document.createElement('div');
+	// ресетим style
+	var parentElementStyleValue =
+		ModularGrid.Utils.createStyleValue(
+			{
+				position: 'absolute',
+				left: '0',
+				top: '0',
+
+				display: 'none',
+
+				height: ModularGrid.Utils.getClientHeight() + 'px',
+				width: '100%',
+
+				'z-index': params['z-index']
+			}
+		);
+	this.horizontalGridParentElement.setAttribute("style", parentElementStyleValue);
+
+	this.horizontalGridParentElement.innerHTML = this.createHorizontalGridHTML(params);
+
+	return this.horizontalGridParentElement;
+};
+
+/**
+ * @private
+ * @return {String} HTML для отображения горизонтальной модульной сетки
+ */
+ModularGrid.Grid.createHorizontalGridHTML = function (params) {
+	var horizontalGridHTML = '';
+
+	var height = ModularGrid.Utils.getClientHeight();
+	var y = params.marginTop;
+
+	var hCounter = 0;
+	var hCounterMax = params.hDivisions + 1;
+	var hHeight = params.lineHeight * params.hDivisions;
+
+	var styleCSS =
+		{
+			position: 'absolute',
+
+			width: 'auto',
+
+			left: params.marginLeft,
+			right: params.marginRight,
+
+			height: hHeight + 'px',
+
+			background: params.color,
+			opacity: params.opacity
+		};
+
+	while ( y < height ) {
+		if ( hCounter == 0 && (y + hHeight) < height ) {
+			styleCSS.top = y + 'px';
+			horizontalGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+		}
+
+		y += params.lineHeight;
+
+		hCounter++;
+		if ( hCounter == hCounterMax )
+			hCounter = 0;
+	}
+
+	return horizontalGridHTML;
+};
+
+ModularGrid.Grid.createFontGridParentElement = function (params) {
+	this.fontGridParentElement = document.createElement('div');
+	// ресетим style
+	var parentElementStyleValue =
+		ModularGrid.Utils.createStyleValue(
+			{
+				position: 'absolute',
+				left: '0',
+				top: '0',
+
+				display: 'none',
+
+				height: ModularGrid.Utils.getClientHeight() + 'px',
+				width: '100%',
+
+				'z-index': params['z-index']
+			}
+		);
+	this.fontGridParentElement.setAttribute("style", parentElementStyleValue);
+
+	this.fontGridParentElement.innerHTML = this.createFontGridHTML(params);
+
+	return this.fontGridParentElement;
+};
+
+/**
+ * @private
+ * @return {String} HTML для отображения шрифтовой сетки
+ */
+ModularGrid.Grid.createFontGridHTML = function (params) {
+	var fontGridHTML = "";
+
+	var height = ModularGrid.Utils.getClientHeight();
+	var y = params.marginTop;
+
+	var styleCSS =
+		{
+			position: 'absolute',
+			height: 0,
+
+			opacity: params.opacity,
+
+			'border-bottom': params.lineWidth + ' ' + params.lineStyle + ' ' + params.lineColor + ' !important'
+		};
+
+	while ( y < height ) {
+		y += params.lineHeight;
+
+		styleCSS.top = (y + 'px');
+		fontGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+	};
+
+	return fontGridHTML;
+};
+
+/**
+ * Скрывает-показывает гайды
+ */
+ModularGrid.Grid.toggleVisibility = function () {
+	this.showing = !this.showing;
+
+	this.fontGridShowing = this.showing;
+	this.horizontalGridShowing = this.showing;
+	this.verticalGridShowing = this.showing;
+
+	this.updateFontGridVisibility();
+	this.updateHorizontalGridVisibility();
+	this.updateVerticalGridVisibility();
+};
+
+ModularGrid.Grid.updateFontGridVisibility = function () {
+	if ( this.fontGridShowing && this.fontGridParentElement == null )
+		this.createParentElement(this.params);
+
+	if ( this.fontGridParentElement )
+		this.fontGridParentElement.style.display = ( this.fontGridShowing ? 'block' : 'none' );
+};
+
+ModularGrid.Grid.updateHorizontalGridVisibility = function () {
+	if ( this.horizontalGridShowing && this.horizontalGridParentElement == null )
+		this.createParentElement(this.params);
+
+	if ( this.horizontalGridParentElement )
+		this.horizontalGridParentElement.style.display = ( this.horizontalGridShowing ? 'block' : 'none' );
+};
+
+ModularGrid.Grid.updateVerticalGridVisibility = function () {
+	if ( this.verticalGridShowing && this.verticalGridParentElement == null )
+		this.createParentElement(this.params);
+
+	if ( this.verticalGridParentElement )
+		this.verticalGridParentElement.style.display = ( this.verticalGridShowing ? 'block' : 'none' );
+};
+
+ModularGrid.Grid.toggleHorizontalGridVisibility = function () {
+	this.horizontalGridShowing = !this.horizontalGridShowing;
+	this.updateShowing();
+
+	this.updateHorizontalGridVisibility();
+};
+
+ModularGrid.Grid.toggleVerticalGridVisibility = function () {
+	this.verticalGridShowing = !this.verticalGridShowing;
+	this.updateShowing();
+
+	this.updateVerticalGridVisibility();
+};
+
+ModularGrid.Grid.toggleFontGridVisibility = function () {
+	this.fontGridShowing = !this.fontGridShowing;
+	this.updateShowing();
+
+	this.updateFontGridVisibility();
+};
+
+ModularGrid.Grid.updateShowing = function () {
+	this.showing = this.fontGridShowing || this.horizontalGridShowing || this.verticalGridShowing;
+};/** @include "../index.js" */
+ModularGrid.Resizer = {};/** @include "index.js */
+
+ModularGrid.Resizer.defaults = {
+	shouldToggleSize:
+		function (params) {
+			var result = (params.ctrlKey && params.altKey && params.keyCode == 82);
+			return result;
+		},
+
+	changeTitle: true,
+
+	sizes: []
+};/** @include "namespace.js" */
+
+ModularGrid.Resizer.params = null;
+
+ModularGrid.Resizer.sizes = null;
+ModularGrid.Resizer.currentSizeIndex = null;
+
+ModularGrid.Resizer.title = null;
+
+ModularGrid.Resizer.detectDefaultSize = function () {
+	var result = null;
+
+  if ( typeof( window.innerWidth ) == 'number' && typeof( window.innerHeight ) == 'number' ) {
+  	result =
+  		{
+  			width: window.innerWidth,
+  			height: window.innerHeight
+  		};
+  }
+  else
+  	if ( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+  		result =
+	  		{
+	    		width: document.documentElement.clientWidth,
+	    		height: document.documentElement.clientHeight
+	  		};
+  	}
+  	else
+  		if ( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+  			result =
+	  			{
+	    			width: document.body.clientWidth,
+	    			height: document.body.clientHeight
+	  			};
+  		}
+
+	return result;
+};
+
+ModularGrid.Resizer.getDefaultSize = function () {
+	return this.sizes[0];
+};
+
+ModularGrid.Resizer.getCurrentSize = function () {
+	return this.sizes[this.currentSizeIndex];
+};
+
+/**
+ * Устанавливает настройки для гайдов
+ * @param {Object} params параметры гайдов
+ */
+ModularGrid.Resizer.init = function (params, grid) {
+	this.params = ModularGrid.Utils.createParams(this.defaults, params);
+
+	var defaultSize = this.detectDefaultSize();
+	if ( defaultSize ) {
+		var sizes = [ defaultSize ];
+
+		if ( this.params.sizes.length ) {
+			for(var i = 0, length = this.params.sizes.length; i < length; i++)
+				sizes.push( this.params.sizes[i] );
+		}
+		else {
+			if ( grid.params.minWidth )
+				sizes.push(
+					{
+						width: grid.params.minWidth
+					}
+				);
+		}
+
+		if ( sizes.length > 1 ) {
+			if ( this.params.changeTitle )
+				this.title = document.title;
+
+			this.sizes = sizes;
+			this.currentSizeIndex = 0;
+		}
+	}
+};
+
+ModularGrid.Resizer.toggleSize = function () {
+	if ( this.currentSizeIndex != null ) {
+		this.currentSizeIndex++;
+		this.currentSizeIndex = ( this.currentSizeIndex == this.sizes.length ? 0 : this.currentSizeIndex );
+
+		var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
+		var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
+
+		window.resizeTo(width, height);
+
+		if ( this.params.changeTitle ) {
+			var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
+			document.title = titleText;
+		}
+	}
+}/**
+ * @include "namespace.js"
+ * @include "Utils/index.js"
+ * @include "Grid/index.js"
+ * @include "Guides/index.js"
+ * @include "Resizer/index.js"
+ */
+
+ModularGrid.keyDownEventProvider = null;
+
+/**
+ * Возвращает обертку для отлова события нажатия клавиш
+ * @private
+ * @return {ModularGrid.Utils.EventProvider} для события нажатия клавиш
+ */
+ModularGrid.getKeyDownEventProvider = function () {
+	if ( this.keyDownEventProvider == null ) {
+		this.keyDownEventProvider =
+			new ModularGrid.Utils.EventProvider(
+				'keydown',
+				function (event) {
+					var keyboardEvent = ( window.event ? window.event : event );
+					var keyCode = (keyboardEvent.keyCode ? keyboardEvent.keyCode : (keyboardEvent.which ? keyboardEvent.which : null));
+
+					return {
+						keyCode: keyCode,
+
+						altKey: keyboardEvent.altKey,
+						shiftKey: keyboardEvent.shiftKey,
+						ctrlKey: keyboardEvent.ctrlKey,
+
+						event: keyboardEvent
+					};
+				}
+			);
+	};
+
+	return this.keyDownEventProvider;
+};
+
+/**
+ * Устанавливает настройки модульной сетки и ставит обработчики событий для показа сетки
+ * @param {Object} params параметры инициализации
+ */
+ModularGrid.init = function (params) {
+	var self = this;
+
+	// изображение
+	this.Image.init(params.image);
+	var imageStateChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Image.params.shouldToggleVisibility,
+			function () {
+				self.Image.toggleVisibility();
+			}
+		);
+	var imageOpacityUpChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Image.params.shouldStepUpOpacity,
+			function () {
+				self.Image.stepUpOpacity();
+			}
+		);
+	var imageOpacityDownChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Image.params.shouldStepDownOpacity,
+			function () {
+				self.Image.stepDownOpacity();
+			}
+		);
+
+	// гайды
+	this.Guides.init(params.guides);
+	var guidesStateChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Guides.params.shouldToggleVisibility,
+			function () {
+				self.Guides.toggleVisibility();
+			}
+		);
+
+	// сетка
+	this.Grid.init(params.grid);
+	var gridStateChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Grid.params.shouldToggleVisibility,
+			function () {
+				self.Grid.toggleVisibility();
+			}
+		);
+
+	var gridFontGridVisibilityChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Grid.params.shouldToggleFontGridVisibility,
+			function () {
+				self.Grid.toggleFontGridVisibility();
+			}
+		);
+
+	var gridHorizontalGridVisibilityChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Grid.params.shouldToggleHorizontalGridVisibility,
+			function () {
+				self.Grid.toggleHorizontalGridVisibility();
+			}
+		);
+
+	var gridVerticalGridVisibilityChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Grid.params.shouldToggleVerticalGridVisibility,
+			function () {
+				self.Grid.toggleVerticalGridVisibility();
+			}
+		);
+
+	// resizer
+	this.Resizer.init(params.resizer, this.Grid);
+	var resizerSizeChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.Resizer.params.shouldToggleSize,
+			function () {
+				self.Resizer.toggleSize();
+			}
+		);
+};/** @include "index.js" */
+
+// init
+ModularGrid.init(
+	{
+		image: {
+			src: 'design.png',
+			width: 950,
+			height: 2450,
+
+			centered: true
+		},
+		grid: {
+
+
+		},
+		resizer: {
+			sizes:
+				[
+					{
+						width: 800
+					},
+					{
+						width: 1024,
+						height: 768
+					}
+				]
+		},
+		guides: {
+			items: [
+				{
+					type: 'center',
+					width: '30%'
+				},
+				{
+					type: 'vertical',
+					left: '20px'
+				},
+				{
+					type: 'vertical',
+					left: '20%'
+				},
+				{
+					type: 'vertical',
+					right: '20px'
+				},
+				{
+					type: 'vertical',
+					right: '20%'
+				},
+				{
+					type: 'horizontal',
+					top: '20px'
+				},
+				{
+					type: 'horizontal',
+					top: '20%'
+				},
+				{
+					type: 'horizontal',
+					bottom: '20px'
+				},
+				{
+					type: 'horizontal',
+					bottom: '20%'
+				}
+			]
+		}
+	}
+);
