@@ -87,12 +87,14 @@ shouldToggleVisibility:
  * @type String
  */
 lineStyle: 'solid',
+
 /**
  * Цвет линий-направляющих.
  * Значения аналогичны значениям CSS-свойства border-color.
  * @type String
  */
 lineColor: '#9dffff',
+
 /**
  * Толщина линий-направляющих.
  * Значения аналогичны значениям CSS-свойства border-width.
@@ -104,6 +106,6 @@ lineWidth: '1px',
  * значения CSS-свойства z-index HTML-контейнера всех направляющих
  * @type Number
  */
-'z-index': 255,
+'z-index': 255
 
 }}}
