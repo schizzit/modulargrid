@@ -1,0 +1,13 @@
+#summary Решение проблем
+
+= Если что-то пошло не так =
+ # Проверьте, включён ли Javascript в вашем браузере
+ # Проверьте настройки в файле `modulargrid.js` - нет ли ошибки синтаксиса
+ # Просмотрите [http://code.google.com/p/modulargrid/issues/ список известных проблем], может быть, над вашей проблемой уже работают
+ # Обратитесь в [http://groups.google.com/group/modulargrid Google-группу] проекта, может быть, ваша проблема уже обсуждалась
+ # Используйте отладочную версию modulargrid - `<script type="text/javascript" src="modulargrid_debug.js"></script>`
+ # [http://code.google.com/p/modulargrid/issues/entry Добавьте багрепорт], приложив свой HTML и CSS код и краткое описание проблемы
+
+= Запрос новых функций =
+
+Если вам не хватает какой-либо функции, либо у вас есть предложения по улучшению modulargrid, пишите в [http://groups.google.com/group/modulargrid Google-группу] проекта - ваше предложение будет обязательно рассмотрено.
