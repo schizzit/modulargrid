@@ -37,9 +37,6 @@ ModularGrid.Image.createParentElement = function (params) {
 			'z-index': params['z-index']
 		};
 
-//	if ( params.centered )
-//		parentElementStyle['text-align'] = 'center';
-
 	parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
 
 	// создаём HTML гайдов
@@ -111,10 +108,10 @@ ModularGrid.Image.stepUpOpacity = function () {
 };
 
 ModularGrid.Image.updateOpacity = function (opacity) {
-	if ( this.showing && this.imgElement )
-		this.imgElement.style.opacity = opacity;
+	if ( !this.showing )
+		this.toggleVisibility();
 
-	console.log(this.imgElement.style.opacity);
+	this.imgElement.style.opacity = opacity;
 };
 
 /**
