@@ -160,9 +160,9 @@ ModularGrid.Utils.createStyleValue = function (params) {
 	return result;
 };/** @include "../index.js" */
 
-ModularGrid.Image = {};/** @include "index.js" */
+ModularGrid.OpacityChanger = {};/** @include "index.js" */
 
-ModularGrid.Image.defaults = {
+ModularGrid.OpacityChanger.defaults = {
 	/**
 	 * Функция вызывается каждый раз при нажатии клавиш в браузере.
 	 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
@@ -185,6 +185,64 @@ ModularGrid.Image.defaults = {
 			var result = (params.ctrlKey && params.keyCode == 219);
 			return result;
 		},
+
+	/**
+	 * Начальное значение прозрачности изображения от 0 до 1 (0 - абсолютно прозрачное, 1 - абсолютно непрозрачное)
+	 * @type Number
+	 */
+	opacity: 0.25,
+	/**
+	 * Шаг изменения значения прозрачности для изображения от 0 до 1
+	 * @type Number
+	 */
+	opacityStep: 0.05
+};ModularGrid.OpacityChanger.params = null;
+
+/** @type Array */
+ModularGrid.OpacityChanger.handlers = null;
+
+/**
+ * Устанавливает настройки для гайдов
+ *
+ * @param {Object}
+ *            params параметры гайдов
+ */
+ModularGrid.OpacityChanger.init = function(params) {
+	this.params = ModularGrid.Utils.createParams(this.defaults, params);
+	this.handlers = [];
+};
+
+ModularGrid.OpacityChanger.stepDownOpacity = function() {
+	this.params.opacity -= this.params.opacityStep;
+	this.params.opacity = (this.params.opacity < 0 ? 0.0 : this.params.opacity);
+
+	this.updateOpacity(this.params.opacity);
+};
+
+ModularGrid.OpacityChanger.stepUpOpacity = function() {
+	this.params.opacity += this.params.opacityStep;
+	this.params.opacity = (this.params.opacity > 1 ? 1.0 : this.params.opacity);
+
+	this.updateOpacity(this.params.opacity);
+};
+
+ModularGrid.OpacityChanger.addHandler = function (handler) {
+	this.handlers.push(handler);
+};
+
+ModularGrid.OpacityChanger.updateOpacity = function(opacity) {
+	for(var i = 0, length = this.handlers.length; i < length; i++)
+		this.handlers[i]();
+};
+
+ModularGrid.OpacityChanger.changeElementOpacity = function (element) {
+	if (element)
+		element.style.opacity = this.params.opacity;
+};/** @include "../index.js" */
+
+ModularGrid.Image = {};/** @include "index.js" */
+
+ModularGrid.Image.defaults = {
 	/**
 	 * Функция вызывается каждый раз при нажатии клавиш в браузере.
 	 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
@@ -202,17 +260,6 @@ ModularGrid.Image.defaults = {
 	 * @type Number
 	 */
 	'z-index': 255,
-
-	/**
-	 * Начальное значение прозрачности изображения от 0 до 1 (0 - абсолютно прозрачное, 1 - абсолютно непрозрачное)
-	 * @type Number
-	 */
-	opacity: 0.85,
-	/**
-	 * Шаг изменения значения прозрачности для изображения от 0 до 1
-	 * @type Number
-	 */
-	opacityStep: 0.05,
 
 	/**
 	 * Центрировать ли изображение относительно рабочей области браузера
@@ -265,33 +312,37 @@ ModularGrid.Image.imgElement = null;
 
 /**
  * Устанавливает настройки для гайдов
- * @param {Object} params параметры гайдов
+ *
+ * @param {Object}
+ *            params параметры гайдов
  */
-ModularGrid.Image.init = function (params) {
+ModularGrid.Image.init = function(params) {
 	this.params = ModularGrid.Utils.createParams(this.defaults, params);
 };
 
 /**
  * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+ *
  * @private
- * @param {Object} params параметры создания элемента и гайдов
+ * @param {Object}
+ *            params параметры создания элемента и гайдов
  * @return {Element} корневой HTML-элемент
  */
-ModularGrid.Image.createParentElement = function (params) {
+ModularGrid.Image.createParentElement = function(params) {
 	// создаем элемент и ресетим style
 	var parentElement = document.createElement("div");
 
-	var parentElementStyle =
-		{
-			position: 'absolute',
-			left: '0',
-			top: '0',
+	var parentElementStyle = {
+		position : 'absolute',
+		left : '0',
+		top : '0',
 
-			width: '100%',
-			height: params.height + 'px',
+		width : '100%',
+		height : params.height + 'px',
 
-			'z-index': params['z-index']
-		};
+		opacity: 1,
+		'z-index' : params['z-index']
+	};
 
 	parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
 
@@ -306,33 +357,31 @@ ModularGrid.Image.createParentElement = function (params) {
 
 /**
  * Создает HTML-строку для отображения гайдов
+ *
  * @private
- * @param {Array} items массив настроек для создания гайдов
+ * @param {Array}
+ *            items массив настроек для создания гайдов
  * @return {String} HTML-строка для отображения гайдов
  */
-ModularGrid.Image.createImageDOM = function (params) {
-	var imageStyle =
-		{
-			width: 'auto',
-			height: 'auto',
+ModularGrid.Image.createImageDOM = function(params) {
+	var imageStyle = {
+		width : 'auto',
+		height : 'auto',
 
-			opacity: params.opacity
-		};
-	var imageContainerStyle =
-		{
-			'padding-top': params.marginTop + 'px',
+		opacity : ModularGrid.OpacityChanger.params.opacity
+	};
+	var imageContainerStyle = {
+		'padding-top' : params.marginTop + 'px',
 
-			width: 'auto',
-			height: 'auto'
-		};
+		width : 'auto',
+		height : 'auto'
+	};
 
-	if ( params.centered ) {
+	if (params.centered) {
 		imageContainerStyle['text-align'] = 'center';
 		imageStyle.margin = '0 auto';
-	}
-	else {
-		imageContainerStyle['padding-left'] = params.marginLeft,
-		imageContainerStyle['padding-right'] = params.marginRight
+	} else {
+		imageContainerStyle['padding-left'] = params.marginLeft, imageContainerStyle['padding-right'] = params.marginRight;
 	};
 
 	var imageDOMParent = document.createElement('div');
@@ -349,39 +398,22 @@ ModularGrid.Image.createImageDOM = function (params) {
 	return imageDOMParent;
 };
 
-ModularGrid.Image.stepDownOpacity = function () {
-	this.params.opacity -= this.params.opacityStep;
-	this.params.opacity = ( this.params.opacity < 0 ? 0.0 : this.params.opacity );
-
-	this.updateOpacity( this.params.opacity );
-};
-
-ModularGrid.Image.stepUpOpacity = function () {
-	this.params.opacity += this.params.opacityStep;
-	this.params.opacity = ( this.params.opacity > 1 ? 1.0 : this.params.opacity );
-
-	this.updateOpacity( this.params.opacity );
-};
-
-ModularGrid.Image.updateOpacity = function (opacity) {
-	if ( !this.showing )
-		this.toggleVisibility();
-
-	this.imgElement.style.opacity = opacity;
+ModularGrid.Image.opacityHandler = function () {
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Image.imgElement);
 };
 
 /**
  * Скрывает-показывает гайды
  */
-ModularGrid.Image.toggleVisibility = function () {
+ModularGrid.Image.toggleVisibility = function() {
 	this.showing = !this.showing;
 
-	if ( this.showing && this.parentElement == null ) {
+	if (this.showing && this.parentElement == null) {
 		this.parentElement = this.createParentElement(this.params);
 	}
 
-	if ( this.parentElement )
-		this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
+	if (this.parentElement)
+		this.parentElement.style.display = (this.showing ? 'block' : 'none');
 };/** @include "../index.js" */
 ModularGrid.Guides = {};/** @include "index.js */
 
@@ -614,13 +646,6 @@ ModularGrid.Grid.defaults = {
 	'z-index': 255,
 
 	/**
-	 * Прозрачность элементов модульной сетки.
-	 * 1.0 - непрозрачная, 0 - прозрачная
-	 * @type Number
-	 */
-	opacity: 0.2,
-
-	/**
 	 * Цвет фона колонок и строк модульной сетки.
 	 * Цвет линий шрифтовой сетки задаётся отдельно.
 	 * @see lineColor
@@ -750,6 +775,12 @@ ModularGrid.Grid.createParentElement = function (params) {
 	return parentElement;
 };
 
+ModularGrid.Grid.opacityHandler = function () {
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.fontGridParentElement);
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.verticalGridParentElement);
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.horizontalGridParentElement);
+};
+
 ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 	this.verticalGridParentElement = document.createElement('div');
 	this.verticalGridParentElement.setAttribute(
@@ -765,6 +796,7 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		)
@@ -860,6 +892,7 @@ ModularGrid.Grid.createHorizontalGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		);
@@ -930,6 +963,7 @@ ModularGrid.Grid.createFontGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		);
@@ -1161,6 +1195,7 @@ ModularGrid.Resizer.toggleSize = function () {
  * @include "Grid/index.js"
  * @include "Guides/index.js"
  * @include "Resizer/index.js"
+ * @include "OpacityChanger/index.js"
  */
 
 ModularGrid.keyDownEventProvider = null;
@@ -1202,30 +1237,33 @@ ModularGrid.getKeyDownEventProvider = function () {
 ModularGrid.init = function (params) {
 	var self = this;
 
+	this.OpacityChanger.init(params.opacity);
+	var opacityUpChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.OpacityChanger.params.shouldStepUpOpacity,
+			function () {
+				self.OpacityChanger.stepUpOpacity();
+			}
+		);
+	var opacityDownChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.OpacityChanger.params.shouldStepDownOpacity,
+			function () {
+				self.OpacityChanger.stepDownOpacity();
+			}
+		);
+
 	// изображение
 	this.Image.init(params.image);
+	this.OpacityChanger.addHandler(this.Image.opacityHandler);
 	var imageStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Image.params.shouldToggleVisibility,
 			function () {
 				self.Image.toggleVisibility();
-			}
-		);
-	var imageOpacityUpChanger =
-		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Image.params.shouldStepUpOpacity,
-			function () {
-				self.Image.stepUpOpacity();
-			}
-		);
-	var imageOpacityDownChanger =
-		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Image.params.shouldStepDownOpacity,
-			function () {
-				self.Image.stepDownOpacity();
 			}
 		);
 
@@ -1242,6 +1280,7 @@ ModularGrid.init = function (params) {
 
 	// сетка
 	this.Grid.init(params.grid);
+	this.OpacityChanger.addHandler(this.Grid.opacityHandler);
 	var gridStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
@@ -1298,6 +1337,121 @@ ModularGrid.init = function (params) {
  */
 ModularGrid.init(
 	{
+		// настройки гайдов
+		guides: {
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно показать/скрыть направляющие
+			 */
+			shouldToggleVisibility:
+				function (params) {
+					// Ctrl + ;
+					var result = (params.ctrlKey && (params.keyCode == 59 || params.keyCode == 186));
+					return result;
+				},
+
+			/**
+			 * Стиль линий-направляющих.
+			 * Значения аналогичны значениям CSS-свойства border-style.
+			 * @type String
+			 */
+			lineStyle: 'solid',
+			/**
+			 * Цвет линий-направляющих.
+			 * Значения аналогичны значениям CSS-свойства border-color.
+			 * @type String
+			 */
+			lineColor: '#9dffff',
+			/**
+			 * Толщина линий-направляющих.
+			 * Значения аналогичны значениям CSS-свойства border-width.
+			 * @type String
+			 */
+			lineWidth: '1px',
+
+			/**
+			 * значения CSS-свойства z-index HTML-контейнера всех направляющих
+			 * @type Number
+			 */
+			'z-index': 255,
+
+			/**
+			 * Массив настроек направляющих (задается в формате items:[{настройки-1},{настройки-2},...,{настройки-N}]).
+			 * @type Array
+			 */
+			items: [
+				{
+					/**
+					 * Две центрированные направляющие
+					 *
+					 * Ширина задается параметром width (значения аналогичны значениям CSS-свойства width),
+					 * две направляющие рисуются слева и справа от центрированной области заданной ширины.
+					 */
+					type: 'center',
+					width: '30%'
+				},
+				{
+					/**
+					 * Одна вертикальная направляющая
+					 *
+					 * Можно задать либо отступ от левого края рабочей области браузера параметром left,
+					 * либо отступ от правого края рабочей области браузера параметром right.
+					 * Значения параметров аналогичны значениям CSS-свойства left.
+					 */
+					type: 'vertical',
+					left: '20px'
+				},
+				{
+					/**
+					 * Одна горизонтальная направляющая
+					 *
+					 * Можно задать либо отступ от верхнего края рабочей области браузера параметром top,
+					 * либо отступ от нижнего края рабочей области браузера параметром bottom.
+					 * Значения параметров аналогичны значениям CSS-свойства top.
+					 */
+					type: 'horizontal',
+					top: '20px'
+				}
+			]
+		},
+
+		grid: {
+
+
+		},
+
+		resizer: {
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно изменить размер на следующий из заданных
+			 */
+			shouldToggleSize:
+				function (params) {
+					// Ctrl + Alt + r
+					var result = (params.ctrlKey && params.altKey && params.keyCode == 82);
+					return result;
+				},
+
+			/**
+			 * Нужно ли в title окна указывать разрешение
+			 * @type Boolean
+			 */
+			changeTitle: true,
+
+			sizes:
+				[
+					{
+						width: 800
+					},
+					{
+						width: 1024,
+						height: 768
+					}
+				]
+		},
+
 		// настройки макета-изображения
 		image: {
 			/**
@@ -1379,7 +1533,7 @@ ModularGrid.init(
 			 * URL файла изображения
 			 * @type String
 			 */
-			src: '',
+			src: 'design.png',
 
 			/**
 			 * Ширина изображения в пикселах
@@ -1393,118 +1547,41 @@ ModularGrid.init(
 			height: 100
 		},
 
-		grid: {
-
-
-		},
-		resizer: {
+		opacity: {
 			/**
 			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
 			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
-			 * @return {Boolean} true, если нужно изменить размер на следующий из заданных
+			 * @return {Boolean} true, если нужно сделать изображение менее прозрачным на opacityStep процентов
 			 */
-			shouldToggleSize:
+			shouldStepUpOpacity:
 				function (params) {
-					// Ctrl + Alt + r
-					var result = (params.ctrlKey && params.altKey && params.keyCode == 82);
+					// Ctrl + ]
+					var result = (params.ctrlKey && params.keyCode == 221);
+					return result;
+				},
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно сделать изображение более прозрачным на opacityStep процентов
+			 */
+			shouldStepDownOpacity:
+				function (params) {
+					// Ctrl + [
+					var result = (params.ctrlKey && params.keyCode == 219);
 					return result;
 				},
 
 			/**
-			 * Нужно ли в title окна указывать разрешение
-			 * @type Boolean
-			 */
-			changeTitle: true,
-
-			sizes:
-				[
-					{
-						width: 800
-					},
-					{
-						width: 1024,
-						height: 768
-					}
-				]
-		},
-
-		// настройки гайдов
-		guides: {
-			/**
-			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
-			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
-			 * @return {Boolean} true, если нужно показать/скрыть направляющие
-			 */
-			shouldToggleVisibility:
-				function (params) {
-					// Ctrl + ;
-					var result = (params.ctrlKey && (params.keyCode == 59 || params.keyCode == 186));
-					return result;
-				},
-
-			/**
-			 * Стиль линий-направляющих.
-			 * Значения аналогичны значениям CSS-свойства border-style.
-			 * @type String
-			 */
-			lineStyle: 'solid',
-			/**
-			 * Цвет линий-направляющих.
-			 * Значения аналогичны значениям CSS-свойства border-color.
-			 * @type String
-			 */
-			lineColor: '#9dffff',
-			/**
-			 * Толщина линий-направляющих.
-			 * Значения аналогичны значениям CSS-свойства border-width.
-			 * @type String
-			 */
-			lineWidth: '1px',
-
-			/**
-			 * значения CSS-свойства z-index HTML-контейнера всех направляющих
+			 * Начальное значение прозрачности изображения от 0 до 1 (0 - абсолютно прозрачное, 1 - абсолютно непрозрачное)
 			 * @type Number
 			 */
-			'z-index': 255,
-
+			opacity: 0.25,
 			/**
-			 * Массив настроек направляющих (задается в формате items:[{настройки-1},{настройки-2},...,{настройки-N}]).
-			 * @type Array
+			 * Шаг изменения значения прозрачности для изображения от 0 до 1
+			 * @type Number
 			 */
-			items: [
-				{
-					/**
-					 * Две центрированные направляющие
-					 *
-					 * Ширина задается параметром width (значения аналогичны значениям CSS-свойства width),
-					 * две направляющие рисуются слева и справа от центрированной области заданной ширины.
-					 */
-					type: 'center',
-					width: '30%'
-				},
-				{
-					/**
-					 * Одна вертикальная направляющая
-					 *
-					 * Можно задать либо отступ от левого края рабочей области браузера параметром left,
-					 * либо отступ от правого края рабочей области браузера параметром right.
-					 * Значения параметров аналогичны значениям CSS-свойства left.
-					 */
-					type: 'vertical',
-					left: '20px'
-				},
-				{
-					/**
-					 * Одна горизонтальная направляющая
-					 *
-					 * Можно задать либо отступ от верхнего края рабочей области браузера параметром top,
-					 * либо отступ от нижнего края рабочей области браузера параметром bottom.
-					 * Значения параметров аналогичны значениям CSS-свойства top.
-					 */
-					type: 'horizontal',
-					top: '20px'
-				}
-			]
+			opacityStep: 0.05
 		}
+
 	}
 );
