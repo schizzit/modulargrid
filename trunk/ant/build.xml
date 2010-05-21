@@ -37,6 +37,10 @@
 				<file name="Utils/StateChanger.js"/>
 				<file name="Utils/index.js"/>
 
+				<file name="OpacityChanger/namespace.js"/>
+				<file name="OpacityChanger/defaults.js"/>
+				<file name="OpacityChanger/index.js"/>
+
 				<file name="Image/namespace.js"/>
 				<file name="Image/defaults.js"/>
 				<file name="Image/index.js"/>

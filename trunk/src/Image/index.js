@@ -9,33 +9,37 @@ ModularGrid.Image.imgElement = null;
 
 /**
  * Устанавливает настройки для гайдов
- * @param {Object} params параметры гайдов
+ *
+ * @param {Object}
+ *            params параметры гайдов
  */
-ModularGrid.Image.init = function (params) {
+ModularGrid.Image.init = function(params) {
 	this.params = ModularGrid.Utils.createParams(this.defaults, params);
 };
 
 /**
  * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+ *
  * @private
- * @param {Object} params параметры создания элемента и гайдов
+ * @param {Object}
+ *            params параметры создания элемента и гайдов
  * @return {Element} корневой HTML-элемент
  */
-ModularGrid.Image.createParentElement = function (params) {
+ModularGrid.Image.createParentElement = function(params) {
 	// создаем элемент и ресетим style
 	var parentElement = document.createElement("div");
 
-	var parentElementStyle =
-		{
-			position: 'absolute',
-			left: '0',
-			top: '0',
+	var parentElementStyle = {
+		position : 'absolute',
+		left : '0',
+		top : '0',
 
-			width: '100%',
-			height: params.height + 'px',
+		width : '100%',
+		height : params.height + 'px',
 
-			'z-index': params['z-index']
-		};
+		opacity: 1,
+		'z-index' : params['z-index']
+	};
 
 	parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
 
@@ -50,33 +54,31 @@ ModularGrid.Image.createParentElement = function (params) {
 
 /**
  * Создает HTML-строку для отображения гайдов
+ *
  * @private
- * @param {Array} items массив настроек для создания гайдов
+ * @param {Array}
+ *            items массив настроек для создания гайдов
  * @return {String} HTML-строка для отображения гайдов
  */
-ModularGrid.Image.createImageDOM = function (params) {
-	var imageStyle =
-		{
-			width: 'auto',
-			height: 'auto',
+ModularGrid.Image.createImageDOM = function(params) {
+	var imageStyle = {
+		width : 'auto',
+		height : 'auto',
 
-			opacity: params.opacity
-		};
-	var imageContainerStyle =
-		{
-			'padding-top': params.marginTop + 'px',
+		opacity : ModularGrid.OpacityChanger.params.opacity
+	};
+	var imageContainerStyle = {
+		'padding-top' : params.marginTop + 'px',
 
-			width: 'auto',
-			height: 'auto'
-		};
+		width : 'auto',
+		height : 'auto'
+	};
 
-	if ( params.centered ) {
+	if (params.centered) {
 		imageContainerStyle['text-align'] = 'center';
 		imageStyle.margin = '0 auto';
-	}
-	else {
-		imageContainerStyle['padding-left'] = params.marginLeft,
-		imageContainerStyle['padding-right'] = params.marginRight
+	} else {
+		imageContainerStyle['padding-left'] = params.marginLeft, imageContainerStyle['padding-right'] = params.marginRight;
 	};
 
 	var imageDOMParent = document.createElement('div');
@@ -93,37 +95,20 @@ ModularGrid.Image.createImageDOM = function (params) {
 	return imageDOMParent;
 };
 
-ModularGrid.Image.stepDownOpacity = function () {
-	this.params.opacity -= this.params.opacityStep;
-	this.params.opacity = ( this.params.opacity < 0 ? 0.0 : this.params.opacity );
-
-	this.updateOpacity( this.params.opacity );
-};
-
-ModularGrid.Image.stepUpOpacity = function () {
-	this.params.opacity += this.params.opacityStep;
-	this.params.opacity = ( this.params.opacity > 1 ? 1.0 : this.params.opacity );
-
-	this.updateOpacity( this.params.opacity );
-};
-
-ModularGrid.Image.updateOpacity = function (opacity) {
-	if ( !this.showing )
-		this.toggleVisibility();
-
-	this.imgElement.style.opacity = opacity;
+ModularGrid.Image.opacityHandler = function () {
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Image.imgElement);
 };
 
 /**
  * Скрывает-показывает гайды
  */
-ModularGrid.Image.toggleVisibility = function () {
+ModularGrid.Image.toggleVisibility = function() {
 	this.showing = !this.showing;
 
-	if ( this.showing && this.parentElement == null ) {
+	if (this.showing && this.parentElement == null) {
 		this.parentElement = this.createParentElement(this.params);
 	}
 
-	if ( this.parentElement )
-		this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
+	if (this.parentElement)
+		this.parentElement.style.display = (this.showing ? 'block' : 'none');
 };

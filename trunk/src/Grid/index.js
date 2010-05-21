@@ -46,6 +46,12 @@ ModularGrid.Grid.createParentElement = function (params) {
 	return parentElement;
 };
 
+ModularGrid.Grid.opacityHandler = function () {
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.fontGridParentElement);
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.verticalGridParentElement);
+	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.horizontalGridParentElement);
+};
+
 ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 	this.verticalGridParentElement = document.createElement('div');
 	this.verticalGridParentElement.setAttribute(
@@ -61,6 +67,7 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		)
@@ -156,6 +163,7 @@ ModularGrid.Grid.createHorizontalGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		);
@@ -226,6 +234,7 @@ ModularGrid.Grid.createFontGridParentElement = function (params) {
 				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
+				opacity: ModularGrid.OpacityChanger.params.opacity,
 				'z-index': params['z-index']
 			}
 		);

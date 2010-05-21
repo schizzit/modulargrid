@@ -4,6 +4,7 @@
  * @include "Grid/index.js"
  * @include "Guides/index.js"
  * @include "Resizer/index.js"
+ * @include "OpacityChanger/index.js"
  */
 
 ModularGrid.keyDownEventProvider = null;
@@ -45,30 +46,33 @@ ModularGrid.getKeyDownEventProvider = function () {
 ModularGrid.init = function (params) {
 	var self = this;
 
+	this.OpacityChanger.init(params.opacity);
+	var opacityUpChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.OpacityChanger.params.shouldStepUpOpacity,
+			function () {
+				self.OpacityChanger.stepUpOpacity();
+			}
+		);
+	var opacityDownChanger =
+		new ModularGrid.Utils.StateChanger(
+			this.getKeyDownEventProvider(),
+			this.OpacityChanger.params.shouldStepDownOpacity,
+			function () {
+				self.OpacityChanger.stepDownOpacity();
+			}
+		);
+
 	// изображение
 	this.Image.init(params.image);
+	this.OpacityChanger.addHandler(this.Image.opacityHandler);
 	var imageStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Image.params.shouldToggleVisibility,
 			function () {
 				self.Image.toggleVisibility();
-			}
-		);
-	var imageOpacityUpChanger =
-		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Image.params.shouldStepUpOpacity,
-			function () {
-				self.Image.stepUpOpacity();
-			}
-		);
-	var imageOpacityDownChanger =
-		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Image.params.shouldStepDownOpacity,
-			function () {
-				self.Image.stepDownOpacity();
 			}
 		);
 
@@ -85,6 +89,7 @@ ModularGrid.init = function (params) {
 
 	// сетка
 	this.Grid.init(params.grid);
+	this.OpacityChanger.addHandler(this.Grid.opacityHandler);
 	var gridStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
