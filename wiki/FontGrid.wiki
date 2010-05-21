@@ -21,3 +21,14 @@ ModularGrid.init(
 `z-index` линий шрифтовой сетки задаётся одним значением с модульной сеткой - `grid.z-index`.
 
 Прозрачность линий шрифтовой сетки задаётся [http://code.google.com/p/modulargrid/wiki/OpacityChangerSetup общими настройками прозрачности сетки и изображения макета].
+
+== Другие настройки ==
+{{{
+shouldToggleFontGridVisibility:
+	function (params) {
+		// Ctrl + Alt + f
+		// показать/скрыть шрифтовую сетку
+		var result = (params.ctrlKey && params.altKey && params.keyCode == 70 );
+		return result;
+	},
+}}}
