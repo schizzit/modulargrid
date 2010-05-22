@@ -12,8 +12,6 @@ ModularGrid.init(
 
 Расстояние между линиями шрифтовой сетки задаётся в пикселах свойством `grid.lineHeight`. Линия шрифтовой сетки рисуется на `grid.lineHeight` + 1 пикселе.
 
-http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
-
 Стиль линий шрифтовой сетки задаётся свойством `grid.lineStyle`. Значения этого свойства аналогичны значениям CSS-свойства `border-style`.
 
 Толщина линий шрифтовой сетки задаётся свойством `grid.lineWidth`. Значения этого свойства аналогичны значениям CSS-свойства `border-width`.
@@ -23,6 +21,19 @@ http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
 `z-index` линий шрифтовой сетки задаётся одним значением с модульной сеткой - `grid.z-index`.
 
 Прозрачность линий шрифтовой сетки задаётся [http://code.google.com/p/modulargrid/wiki/OpacityChangerSetup общими настройками прозрачности сетки и изображения макета].
+
+== Пример ==
+{{{
+ModularGrid.init(
+   {
+      grid: {
+            lineHeight: 32
+      }
+   }
+);
+}}}
+
+http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
 
 == Другие настройки ==
 {{{
