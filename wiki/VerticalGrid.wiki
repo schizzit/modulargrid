@@ -28,9 +28,9 @@ ModularGrid.init(
 );
 }}}
 
-http://modulargrid.googlecode.com/svn/trunk/demo/images/horizontal-grid.png
-
 Создаст горизонтальные модули высотой в три строки (96 пикселов).
+
+http://modulargrid.googlecode.com/svn/trunk/demo/images/horizontal-grid.png
 
 = Другие настройки =
 {{{
