@@ -34,6 +34,8 @@ ModularGrid.init(
 }}}
 Создаст три вертикальных модуля в области шириной 640 пикселей с "канавками" 32 пиксела между ними и "канавкой" перед модулями и "канавкой" после модуля.
 
+http://modulargrid.googlecode.com/svn/trunk/demo/images/vertical-grid.png
+
 = Другие настройки =
 {{{
 shouldToggleVerticalGridVisibility:
