@@ -1,7 +1,5 @@
 #summary Как настраивать шрифтовую сетку
 
-http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
-
 = Настройка шрифтовой сетки =
 Все настройки направляющих задаются как  свойства объекта `grid` в объекте настройки:
 {{{
@@ -13,6 +11,8 @@ ModularGrid.init(
 }}}
 
 Расстояние между линиями шрифтовой сетки задаётся в пикселах свойством `grid.lineHeight`. Линия шрифтовой сетки рисуется на `grid.lineHeight` + 1 пикселе.
+
+http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
 
 Стиль линий шрифтовой сетки задаётся свойством `grid.lineStyle`. Значения этого свойства аналогичны значениям CSS-свойства `border-style`.
 
@@ -32,5 +32,5 @@ shouldToggleFontGridVisibility:
 		// показать/скрыть шрифтовую сетку
 		var result = (params.ctrlKey && params.altKey && params.keyCode == 70 );
 		return result;
-	},
+	}
 }}}
