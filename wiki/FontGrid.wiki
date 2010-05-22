@@ -33,6 +33,8 @@ ModularGrid.init(
 );
 }}}
 
+Создаст шрифтовую сетку высотой 32 пиксела: на каждем 33-ем пикселе по вертикали будет нарисована горизонтальная линия.
+
 http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
 
 == Другие настройки ==
