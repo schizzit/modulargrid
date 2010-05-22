@@ -91,6 +91,9 @@ ModularGrid.Resizer.toggleSize = function () {
 
 		if ( this.params.changeTitle ) {
 			var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
+			if ( this.getCurrentSize().title )
+				titleText = this.getCurrentSize().title;
+
 			document.title = titleText;
 		}
 	}
