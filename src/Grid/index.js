@@ -253,7 +253,7 @@ ModularGrid.Grid.createFontGridHTML = function (params) {
 	var fontGridHTML = "";
 
 	var height = ModularGrid.Utils.getClientHeight();
-	var y = params.marginTop;
+	var y = params.marginTop + params.lineHeight;
 
 	var styleCSS =
 		{
@@ -266,10 +266,10 @@ ModularGrid.Grid.createFontGridHTML = function (params) {
 		};
 
 	while ( y < height ) {
-		y += params.lineHeight;
-
 		styleCSS.top = (y + 'px');
 		fontGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+
+		y += params.lineHeight;
 	};
 
 	return fontGridHTML;
