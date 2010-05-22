@@ -1,5 +1,7 @@
 #summary Как настраивать шрифтовую сетку
 
+http://modulargrid.googlecode.com/svn/trunk/demo/images/font-grid.png
+
 = Настройка шрифтовой сетки =
 Все настройки направляющих задаются как  свойства объекта `grid` в объекте настройки:
 {{{
