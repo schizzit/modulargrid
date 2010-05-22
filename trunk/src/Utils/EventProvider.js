@@ -7,9 +7,10 @@
  * @param {Function} prepareParams преобразователь event браузера в хеш для обработчика
  * @return {ModularGrid.EventProvider}
  */
-ModularGrid.Utils.EventProvider = function(eventName, prepareParams) {
+ModularGrid.Utils.EventProvider = function(eventName, prepareParams, target) {
 	this.eventName = eventName;
 	this.prepareParams = prepareParams;
+	this.target = target || 'document';
 
 	this.handlers = null;
 
@@ -35,7 +36,7 @@ ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
 ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
 	this.handlers = [];
 
-	var code = 'document.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
+	var code = this.target + '.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
 
 	var self = this;
 	eval(code);

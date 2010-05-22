@@ -8,6 +8,29 @@
  */
 
 ModularGrid.keyDownEventProvider = null;
+ModularGrid.resizeEventProvider = null;
+
+/**
+ * Возвращает обертку для отлова события изменения размера окна браузера
+ * @private
+ * @return {ModularGrid.Utils.EventProvider} для события изменения размера окна браузера
+ */
+ModularGrid.getResizeEventProvider = function () {
+	if ( this.resizeEventProvider == null ) {
+		this.resizeEventProvider =
+			new ModularGrid.Utils.EventProvider(
+				'resize',
+				function (event) {
+					return {
+						event: event
+					};
+				},
+				'window'
+			);
+	};
+
+	return this.resizeEventProvider;
+};
 
 /**
  * Возвращает обертку для отлова события нажатия клавиш

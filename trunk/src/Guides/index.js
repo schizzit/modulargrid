@@ -30,7 +30,7 @@ ModularGrid.Guides.createParentElement = function (params) {
 				left: '0',
 				top: '0',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
+				height: '100%',
 				width: '100%',
 
 				'text-align': 'center',

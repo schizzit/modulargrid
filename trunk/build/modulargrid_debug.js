@@ -9,9 +9,10 @@ ModularGrid.Utils = {};/** @include "index.js" */
  * @param {Function} prepareParams преобразователь event браузера в хеш для обработчика
  * @return {ModularGrid.EventProvider}
  */
-ModularGrid.Utils.EventProvider = function(eventName, prepareParams) {
+ModularGrid.Utils.EventProvider = function(eventName, prepareParams, target) {
 	this.eventName = eventName;
 	this.prepareParams = prepareParams;
+	this.target = target || 'document';
 
 	this.handlers = null;
 
@@ -37,7 +38,7 @@ ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
 ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
 	this.handlers = [];
 
-	var code = 'document.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
+	var code = this.target + '.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
 
 	var self = this;
 	eval(code);
@@ -493,7 +494,7 @@ ModularGrid.Guides.createParentElement = function (params) {
 				left: '0',
 				top: '0',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
+				height: '100%',
 				width: '100%',
 
 				'text-align': 'center',
@@ -793,7 +794,7 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 
 				display: 'none',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
+				height: '100%',
 				width: '100%',
 
 				opacity: ModularGrid.OpacityChanger.params.opacity,
@@ -1202,6 +1203,29 @@ ModularGrid.Resizer.toggleSize = function () {
  */
 
 ModularGrid.keyDownEventProvider = null;
+ModularGrid.resizeEventProvider = null;
+
+/**
+ * Возвращает обертку для отлова события изменения размера окна браузера
+ * @private
+ * @return {ModularGrid.Utils.EventProvider} для события изменения размера окна браузера
+ */
+ModularGrid.getResizeEventProvider = function () {
+	if ( this.resizeEventProvider == null ) {
+		this.resizeEventProvider =
+			new ModularGrid.Utils.EventProvider(
+				'resize',
+				function (event) {
+					return {
+						event: event
+					};
+				},
+				'window'
+			);
+	};
+
+	return this.resizeEventProvider;
+};
 
 /**
  * Возвращает обертку для отлова события нажатия клавиш
