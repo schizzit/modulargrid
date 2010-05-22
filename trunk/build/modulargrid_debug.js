@@ -1392,7 +1392,7 @@ ModularGrid.init(
 					 * две направляющие рисуются слева и справа от центрированной области заданной ширины.
 					 */
 					type: 'center',
-					width: '300px'
+					width: '600px'
 				},
 				{
 					/**
@@ -1403,7 +1403,7 @@ ModularGrid.init(
 					 * Значения параметров аналогичны значениям CSS-свойства left.
 					 */
 					type: 'vertical',
-					left: '20%'
+					left: '33%'
 				},
 				{
 					/**
@@ -1414,7 +1414,7 @@ ModularGrid.init(
 					 * Значения параметров аналогичны значениям CSS-свойства top.
 					 */
 					type: 'horizontal',
-					top: '10%'
+					top: '48px'
 				}
 			]
 		},
@@ -1469,10 +1469,10 @@ ModularGrid.init(
 			 */
 			centered: true,
 
-			prependGutter: true,
-			appendGutter: true,
+			prependGutter: false,
+			appendGutter: false,
 
-			gutter: 32,
+			gutter: 16,
 
 			/**
 			 * Количество вертикальных модулей (столбцов сетки)
@@ -1506,8 +1506,8 @@ ModularGrid.init(
 			 */
 			marginRight: '0px',
 
-			width: '100%',
-			minWidth: 640,
+			width: 600,
+			minWidth: null,
 			maxWidth: null,
 
 			/**
@@ -1516,7 +1516,7 @@ ModularGrid.init(
 			 * Сама линия сетки начинает рисоваться на (lineHeight + 1) пикселе
 			 * @type Number
 			 */
-			lineHeight: 32,
+			lineHeight: 16,
 
 			// стиль линий шрифтовой сетки
 			/**
