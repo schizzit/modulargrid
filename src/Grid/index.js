@@ -64,7 +64,7 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 
 				display: 'none',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
+				height: '100%',
 				width: '100%',
 
 				opacity: ModularGrid.OpacityChanger.params.opacity,
