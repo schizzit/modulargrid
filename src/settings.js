@@ -174,8 +174,8 @@ ModularGrid.init(
 			 */
 			marginRight: '0px',
 
-			width: 640,
-			minWidth: 464,
+			width: '100%',
+			minWidth: 640,
 			maxWidth: null,
 
 			/**
