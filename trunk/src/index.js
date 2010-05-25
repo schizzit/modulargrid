@@ -43,10 +43,42 @@ ModularGrid.getKeyDownEventProvider = function () {
 			new ModularGrid.Utils.EventProvider(
 				'keydown',
 				function (event) {
-					var keyboardEvent = ( window.event ? window.event : event );
-					var keyCode = (keyboardEvent.keyCode ? keyboardEvent.keyCode : (keyboardEvent.which ? keyboardEvent.which : null));
+					var keyboardEvent = ( event || window.event );
+					var keyCode = (keyboardEvent.keyCode ? keyboardEvent.keyCode : (keyboardEvent.which ? keyboardEvent.which : keyboardEvent.keyChar));
+
+					var character = String.fromCharCode(keyCode).toLowerCase();
+					var shift_nums = {
+						"`":"~",
+						"1":"!",
+						"2":"@",
+						"3":"#",
+						"4":"$",
+						"5":"%",
+						"6":"^",
+						"7":"&",
+						"8":"*",
+						"9":"(",
+						"0":")",
+						"-":"_",
+						"=":"+",
+						";":":",
+						"'":"\"",
+						",":"<",
+						".":">",
+						"/":"?",
+						"\\":"|"
+					}
+					if ( keyboardEvent.shiftKey && shift_nums[character] )
+						character = shift_nums[character];
+
+				var element = ( keyboardEvent.target ? keyboardEvent.target : keyboardEvent.srcElement );
+				if ( element && element.nodeType == 3 )
+					element = element.parentNode;
+				var occured_in_form = ( element && (element.tagName == 'INPUT' || element.tagName == 'TEXTAREA'));
 
 					return {
+						occured_in_form: occured_in_form,
+						character: character,
 						keyCode: keyCode,
 
 						altKey: keyboardEvent.altKey,

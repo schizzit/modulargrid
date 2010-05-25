@@ -18,7 +18,7 @@ ModularGrid.init(
 			shouldToggleVisibility:
 				function (params) {
 					// Ctrl + ;
-					var result = (params.ctrlKey && (params.keyCode == 59 || params.keyCode == 186));
+					var result = !params.occured_in_form && (params.ctrlKey && (params.character == ';' || params.keyCode == 186));
 					return result;
 				},
 
@@ -88,36 +88,52 @@ ModularGrid.init(
 		},
 
 		grid: {
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно показать/скрыть вертикальную сетку
+			 */
 			shouldToggleVerticalGridVisibility:
 				function (params) {
-					// Ctrl + Alt + v
-					// показать/скрыть вертикальные элементы сетки (колонки)
-					var result = (params.ctrlKey && params.altKey && params.keyCode == 86 );
+					// Shift + v
+					var result = !params.occured_in_form && (params.shiftKey && params.character == 'v' );
 					return result;
 				},
 
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно показать/скрыть горизонтальную сетку
+			 */
 			shouldToggleHorizontalGridVisibility:
 				function (params) {
-					// Ctrl + Alt + h
-					// показать/скрыть горизонтальные элементы сетки (строки)
-					var result = (params.ctrlKey && params.altKey && params.keyCode == 72 );
+					// Shift + h
+					var result = !params.occured_in_form && (params.shiftKey && params.character == 'h' );
 					return result;
 				},
 
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно показать/скыть шрифтовую сетку
+			 */
 			shouldToggleFontGridVisibility:
 				function (params) {
-					// Ctrl + Alt + f
-					// показать/скрыть шрифтовую сетку
-					var result = (params.ctrlKey && params.altKey && params.keyCode == 70 );
+					// Shift + f
+					var result = !params.occured_in_form && (params.shiftKey && params.character == 'f' );
 					return result;
 				},
 
+			/**
+			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
+			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
+			 * @return {Boolean} true, если нужно показать/скрыть сетку целиком
+			 */
 			shouldToggleVisibility:
 				function (params) {
 					// Ctrl + '
-					// показать/скрыть всю сетку
 					// скрывает если хотя бы один из элементов сетки показан (шрифтовая, колонки или строки)
-					var result = (params.ctrlKey && params.keyCode == 222);
+					var result = !params.occured_in_form && (params.ctrlKey && (params.character == "'" || params.keyCode == 222));
 					return result;
 				},
 
@@ -215,8 +231,8 @@ ModularGrid.init(
 			 */
 			shouldToggleSize:
 				function (params) {
-					// Ctrl + Alt + r
-					var result = (params.ctrlKey && params.altKey && params.keyCode == 82);
+					// Shift + r
+					var result = !params.occured_in_form && (params.shiftKey && params.character == 'r');
 					return result;
 				},
 
@@ -248,34 +264,12 @@ ModularGrid.init(
 			/**
 			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
 			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
-			 * @return {Boolean} true, если нужно сделать изображение менее прозрачным на opacityStep процентов
-			 */
-			shouldStepUpOpacity:
-				function (params) {
-					// Ctrl + ]
-					var result = (params.ctrlKey && params.keyCode == 221);
-					return result;
-				},
-			/**
-			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
-			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
-			 * @return {Boolean} true, если нужно сделать изображение более прозрачным на opacityStep процентов
-			 */
-			shouldStepDownOpacity:
-				function (params) {
-					// Ctrl + [
-					var result = (params.ctrlKey && params.keyCode == 219);
-					return result;
-				},
-			/**
-			 * Функция вызывается каждый раз при нажатии клавиш в браузере.
-			 * @param {Object} params информация о нажатой комбинации клавиш (params.ctrlKey, params.altKey, params.keyCode)
 			 * @return {Boolean} true, если нужно показать/скрыть изображение
 			 */
 			shouldToggleVisibility:
 				function (params) {
 					// Ctrl + \
-					var result = (params.ctrlKey && params.keyCode == 220);
+					var result = !params.occured_in_form && (params.ctrlKey && (params.character == '\\' || params.keyCode == 28 || params.keyCode == 220));
 					return result;
 				},
 
@@ -300,13 +294,13 @@ ModularGrid.init(
 			 * Центрировать ли изображение относительно ширины рабочей области браузера
 			 * @type Boolean
 			 */
-			centered: false,
+			centered: true,
 
 			/**
 			 * Отступ от верхнего края рабочей области браузера до изображения в пикселах
 			 * @type Number
 			 */
-			marginTop: 0,
+			marginTop: 100,
 			/**
 			 * Отступ от левого края рабочей области браузера до изображения.
 			 * Возможные значения аналогичны значениям CSS-свойства margin-left
@@ -330,12 +324,12 @@ ModularGrid.init(
 			 * Ширина изображения в пикселах
 			 * @type Number
 			 */
-			width: 100,
+			width: 300,
 			/**
 			 * Высота изображения в пикселах
 			 * @type Number
 			 */
-			height: 100
+			height: 356
 		},
 
 		opacity: {
@@ -346,8 +340,8 @@ ModularGrid.init(
 			 */
 			shouldStepUpOpacity:
 				function (params) {
-					// Ctrl + ]
-					var result = (params.ctrlKey && params.keyCode == 221);
+					// Shift + ]
+					var result = !params.occured_in_form && (params.shiftKey && params.keyCode == 221);
 					return result;
 				},
 			/**
@@ -357,8 +351,8 @@ ModularGrid.init(
 			 */
 			shouldStepDownOpacity:
 				function (params) {
-					// Ctrl + [
-					var result = (params.ctrlKey && params.keyCode == 219);
+					// Shift + [
+					var result = !params.occured_in_form && (params.shiftKey && params.keyCode == 219);
 					return result;
 				},
 

@@ -9,7 +9,7 @@ ModularGrid.Guides.defaults = {
 	shouldToggleVisibility:
 		function (params) {
 			// Ctrl + ;
-			var result = (params.ctrlKey && (params.keyCode == 59 || params.keyCode == 186));
+			var result = !params.occured_in_form && (params.ctrlKey && (params.character == ';' || params.keyCode == 186));
 			return result;
 		},
 
