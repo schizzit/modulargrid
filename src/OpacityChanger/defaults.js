@@ -8,8 +8,8 @@ ModularGrid.OpacityChanger.defaults = {
 	 */
 	shouldStepUpOpacity:
 		function (params) {
-			// Ctrl + ]
-			var result = (params.ctrlKey && params.keyCode == 221);
+			// Shift + ]
+			var result = !params.occured_in_form && (params.shiftKey && params.keyCode == 221);
 			return result;
 		},
 	/**
@@ -19,8 +19,8 @@ ModularGrid.OpacityChanger.defaults = {
 	 */
 	shouldStepDownOpacity:
 		function (params) {
-			// Ctrl + [
-			var result = (params.ctrlKey && params.keyCode == 219);
+			// Shift + [
+			var result = !params.occured_in_form && (params.shiftKey && params.keyCode == 219);
 			return result;
 		},
 

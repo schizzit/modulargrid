@@ -7,25 +7,25 @@
 ModularGrid.Grid.defaults = {
 	shouldToggleVerticalGridVisibility:
 		function (params) {
-			// Ctrl + Alt + v
+			// Shift + v
 			// показать/скрыть вертикальные элементы сетки (колонки)
-			var result = (params.ctrlKey && params.altKey && params.keyCode == 86 );
+			var result = !params.occured_in_form && (params.shiftKey && params.character == 'v' );
 			return result;
 		},
 
 	shouldToggleHorizontalGridVisibility:
 		function (params) {
-			// Ctrl + Alt + h
+			// Shift + h
 			// показать/скрыть горизонтальные элементы сетки (строки)
-			var result = (params.ctrlKey && params.altKey && params.keyCode == 72 );
+			var result = !params.occured_in_form && (params.shiftKey && params.character == 'h' );
 			return result;
 		},
 
 	shouldToggleFontGridVisibility:
 		function (params) {
-			// Ctrl + Alt + f
+			// Shift + f
 			// показать/скрыть шрифтовую сетку
-			var result = (params.ctrlKey && params.altKey && params.keyCode == 70 );
+			var result = !params.occured_in_form && (params.shiftKey && params.character == 'f' );
 			return result;
 		},
 
@@ -33,8 +33,8 @@ ModularGrid.Grid.defaults = {
 		function (params) {
 			// Ctrl + '
 			// показать/скрыть всю сетку
-			//   скрывает если хотя бы один из элементов сетки показан (шрифтовая, колонки или строки)
-			var result = (params.ctrlKey && params.keyCode == 222);
+			// скрывает если хотя бы один из элементов сетки показан (шрифтовая, колонки или строки)
+			var result = !params.occured_in_form && (params.ctrlKey && (params.character == "'" || params.keyCode == 222));
 			return result;
 		},
 

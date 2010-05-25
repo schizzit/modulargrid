@@ -8,8 +8,8 @@ ModularGrid.Resizer.defaults = {
 	 */
 	shouldToggleSize:
 		function (params) {
-			// Ctrl + Alt + r
-			var result = (params.ctrlKey && params.altKey && params.keyCode == 82);
+			// Shift + r
+			var result = !params.occured_in_form && (params.shiftKey && params.character == 'r');
 			return result;
 		},
 

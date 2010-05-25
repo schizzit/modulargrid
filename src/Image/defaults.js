@@ -9,7 +9,7 @@ ModularGrid.Image.defaults = {
 	shouldToggleVisibility:
 		function (params) {
 			// Ctrl + \
-			var result = (params.ctrlKey && params.keyCode == 220);
+			var result = !params.occured_in_form && (params.ctrlKey && (params.character == '\\' || params.keyCode == 28 || params.keyCode == 220));
 			return result;
 		},
 
