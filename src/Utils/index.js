@@ -1,4 +1,16 @@
-/** @include "namespace.js" */
+/**
+ * @include "namespace.js"
+ * @include "CookieStore.js"
+ */
+
+ModularGrid.Utils.updateCSSHeight = function(element, value, callback) {
+	if ( element !== null ) {
+		element.style.height = value;
+
+		if ( callback )
+			callback();
+	}
+};
 
 /**
  * @return {Number} высота области для сетки в пикселах

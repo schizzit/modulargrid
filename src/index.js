@@ -100,6 +100,7 @@ ModularGrid.getKeyDownEventProvider = function () {
  */
 ModularGrid.init = function (params) {
 	var self = this;
+	var store = ModularGrid.Utils.CookieStore;
 
 	this.OpacityChanger.init(params.opacity);
 	var opacityUpChanger =
@@ -107,7 +108,7 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepUpOpacity,
 			function () {
-				self.OpacityChanger.stepUpOpacity();
+				store.setValue('o', self.OpacityChanger.stepUpOpacity());
 			}
 		);
 	var opacityDownChanger =
@@ -115,7 +116,7 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepDownOpacity,
 			function () {
-				self.OpacityChanger.stepDownOpacity();
+				store.setValue('o', self.OpacityChanger.stepDownOpacity());
 			}
 		);
 
@@ -128,6 +129,7 @@ ModularGrid.init = function (params) {
 			this.Image.params.shouldToggleVisibility,
 			function () {
 				self.Image.toggleVisibility();
+				store.setValue('i', self.Image.showing);
 			}
 		);
 
@@ -139,6 +141,7 @@ ModularGrid.init = function (params) {
 			this.Guides.params.shouldToggleVisibility,
 			function () {
 				self.Guides.toggleVisibility();
+				store.setValue('g', self.Guides.showing);
 			}
 		);
 
@@ -151,6 +154,10 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleVisibility,
 			function () {
 				self.Grid.toggleVisibility();
+
+				store.setValue('v', self.Grid.verticalGridShowing);
+				store.setValue('h', self.Grid.horizontalGridShowing);
+				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
 
@@ -160,6 +167,7 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleFontGridVisibility,
 			function () {
 				self.Grid.toggleFontGridVisibility();
+				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
 
@@ -169,6 +177,7 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleHorizontalGridVisibility,
 			function () {
 				self.Grid.toggleHorizontalGridVisibility();
+				store.setValue('h', self.Grid.horizontalGridShowing);
 			}
 		);
 
@@ -178,6 +187,7 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleVerticalGridVisibility,
 			function () {
 				self.Grid.toggleVerticalGridVisibility();
+				store.setValue('v', self.Grid.verticalGridShowing);
 			}
 		);
 
@@ -191,4 +201,42 @@ ModularGrid.init = function (params) {
 				self.Resizer.toggleSize();
 			}
 		);
+
+	// change dimensions by window resize
+	ModularGrid.getResizeEventProvider().addHandler(
+		function (params) {
+			var heightStyleValue = ModularGrid.Utils.getClientHeight() + 'px';
+
+			ModularGrid.Utils.updateCSSHeight(ModularGrid.Grid.horizontalGridParentElement, heightStyleValue, ModularGrid.Grid.updateHorizontalGridContents);
+			ModularGrid.Utils.updateCSSHeight(ModularGrid.Grid.fontGridParentElement, heightStyleValue, ModularGrid.Grid.updateFontGridContents);
+			ModularGrid.Utils.updateCSSHeight(ModularGrid.Grid.verticalGridParentElement, heightStyleValue, ModularGrid.Grid.updateVerticalGridContents);
+
+			ModularGrid.Utils.updateCSSHeight(ModularGrid.Guides.parentElement, heightStyleValue);
+		}
+	);
+
+	//
+	// восстанавливаем состояния из кук
+	// по-умолчанию: всё скрыто
+	if ( store.getValue('i') == 'true' )
+		self.Image.toggleVisibility();
+
+	var image_opacity = parseFloat(store.getValue('o'));
+	if ( !isNaN(image_opacity) ) {
+		self.OpacityChanger.setOpacity( image_opacity );
+	}
+
+	if ( store.getValue('g') == 'true' )
+		self.Guides.toggleVisibility();
+
+	if ( store.getValue('v') == 'true' )
+		self.Grid.toggleVerticalGridVisibility();
+
+	if ( store.getValue('h') == 'true' )
+		self.Grid.toggleHorizontalGridVisibility();
+
+	if ( store.getValue('f') == 'true' )
+		self.Grid.toggleFontGridVisibility();
+
+	self.Grid.updateShowing();
 };

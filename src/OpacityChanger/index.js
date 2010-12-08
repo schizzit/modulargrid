@@ -14,18 +14,22 @@ ModularGrid.OpacityChanger.init = function(params) {
 	this.handlers = [];
 };
 
-ModularGrid.OpacityChanger.stepDownOpacity = function() {
-	this.params.opacity -= this.params.opacityStep;
+ModularGrid.OpacityChanger.setOpacity = function(value) {
+	this.params.opacity = value;
 	this.params.opacity = (this.params.opacity < 0 ? 0.0 : this.params.opacity);
-
-	this.updateOpacity(this.params.opacity);
-};
-
-ModularGrid.OpacityChanger.stepUpOpacity = function() {
-	this.params.opacity += this.params.opacityStep;
 	this.params.opacity = (this.params.opacity > 1 ? 1.0 : this.params.opacity);
 
 	this.updateOpacity(this.params.opacity);
+
+	return this.params.opacity;
+};
+
+ModularGrid.OpacityChanger.stepDownOpacity = function() {
+	return this.setOpacity(this.params.opacity - this.params.opacityStep);
+};
+
+ModularGrid.OpacityChanger.stepUpOpacity = function() {
+	return this.setOpacity(this.params.opacity + this.params.opacityStep);
 };
 
 ModularGrid.OpacityChanger.addHandler = function (handler) {

@@ -64,7 +64,7 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 
 				display: 'none',
 
-				height: '100%',
+				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
 				opacity: ModularGrid.OpacityChanger.params.opacity,
@@ -73,9 +73,14 @@ ModularGrid.Grid.createVerticalGridParentElement = function (params) {
 		)
 	);
 
-	this.verticalGridParentElement.innerHTML = this.createVerticalGridHTML(params);
+	this.updateVerticalGridContents();
 
 	return this.verticalGridParentElement;
+};
+
+ModularGrid.Grid.updateVerticalGridContents = function () {
+	html = ModularGrid.Grid.createVerticalGridHTML(ModularGrid.Grid.params);
+	ModularGrid.Grid.verticalGridParentElement.innerHTML = html;
 };
 
 /**
@@ -107,7 +112,7 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 			'margin-right': '-' + divisionPercent + '%',
 
 			width: divisionPercent + '%',
-			height: '100%',
+			height: ModularGrid.Utils.getClientHeight() + 'px',
 
 			background: params.color,
 
@@ -169,10 +174,16 @@ ModularGrid.Grid.createHorizontalGridParentElement = function (params) {
 		);
 	this.horizontalGridParentElement.setAttribute("style", parentElementStyleValue);
 
-	this.horizontalGridParentElement.innerHTML = this.createHorizontalGridHTML(params);
+	this.updateHorizontalGridContents();
 
 	return this.horizontalGridParentElement;
 };
+
+ModularGrid.Grid.updateHorizontalGridContents = function () {
+	html = ModularGrid.Grid.createHorizontalGridHTML(ModularGrid.Grid.params);
+	ModularGrid.Grid.horizontalGridParentElement.innerHTML = html;
+};
+
 
 /**
  * @private
@@ -240,9 +251,14 @@ ModularGrid.Grid.createFontGridParentElement = function (params) {
 		);
 	this.fontGridParentElement.setAttribute("style", parentElementStyleValue);
 
-	this.fontGridParentElement.innerHTML = this.createFontGridHTML(params);
+	this.updateFontGridContents();
 
 	return this.fontGridParentElement;
+};
+
+ModularGrid.Grid.updateFontGridContents = function () {
+	html = ModularGrid.Grid.createFontGridHTML(ModularGrid.Grid.params);
+	ModularGrid.Grid.fontGridParentElement.innerHTML = html;
 };
 
 /**
