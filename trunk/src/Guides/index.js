@@ -30,7 +30,7 @@ ModularGrid.Guides.createParentElement = function (params) {
 				left: '0',
 				top: '0',
 
-				height: '100%',
+				height: ModularGrid.Utils.getClientHeight() + 'px',
 				width: '100%',
 
 				'text-align': 'center',
@@ -80,7 +80,6 @@ ModularGrid.Guides.createGuidesHTML = function (items) {
 
 							'border-left': borderStyle,
 							'border-right': borderStyle
-
 						};
 
 					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"><div style="' + ModularGrid.Utils.createStyleValue(innerStyleParams) + '"></div></div>';
