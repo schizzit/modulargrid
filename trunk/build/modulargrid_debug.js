@@ -925,6 +925,15 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 		{
 			width: ( fluid ? params.width : width + 'px' )
 		};
+
+	if ( fluid ) {
+		if ( params.maxWidth )
+			widthContainerStyle['max-width'] = params.maxWidth + 'px';
+
+		if ( params.minWidth )
+			widthContainerStyle['min-width'] = params.minWidth + 'px';
+	}
+
 	if ( params.centered ) {
 		var centeredContainerStyle =
 			{
@@ -1707,8 +1716,24 @@ ModularGrid.init(
 			 */
 			marginRight: '0px',
 
+			/**
+			 * Ширина контейнера с сеткой.
+			 * Для резиновой сетки задавать как '100%' и обязательно указывать minWidth
+			 * Для сетки с фиксированной шириной указывать только число, например 640 для ширины 640 пикселов
+			 * @type Number
+			 */
 			width: 600,
+			/**
+			 * Минимальная ширина контейнера с сеткой.
+			 * Указывать только число, например 640 для ширины 640 пикселов
+			 * @type Number
+			 */
 			minWidth: null,
+			/**
+			 * Максимальная ширина контейнера с сеткой.
+			 * Указывать только число, например 1240 для ширины 1240 пикселов
+			 * @type Number
+			 */
 			maxWidth: null,
 
 			/**
