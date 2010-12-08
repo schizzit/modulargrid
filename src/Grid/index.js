@@ -130,6 +130,15 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 		{
 			width: ( fluid ? params.width : width + 'px' )
 		};
+
+	if ( fluid ) {
+		if ( params.maxWidth )
+			widthContainerStyle['max-width'] = params.maxWidth + 'px';
+
+		if ( params.minWidth )
+			widthContainerStyle['min-width'] = params.minWidth + 'px';
+	}
+
 	if ( params.centered ) {
 		var centeredContainerStyle =
 			{
