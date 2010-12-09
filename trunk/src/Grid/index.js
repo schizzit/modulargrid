@@ -118,7 +118,7 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 
 			opacity: params.opacity
 		};
-	for(var i = 0, length = params.vDivisions; i < length; i++) {
+	for(var i = params.vDivisions; i--;) {
 		styleCSS.left = x + '%';
 		html += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
 

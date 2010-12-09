@@ -33,7 +33,7 @@ ModularGrid.OpacityChanger.stepUpOpacity = function() {
 };
 
 ModularGrid.OpacityChanger.addHandler = function (handler) {
-	this.handlers.push(handler);
+	this.handlers[this.handlers.length] = handler;
 };
 
 ModularGrid.OpacityChanger.updateOpacity = function(opacity) {

@@ -52,7 +52,7 @@ ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
 	if ( this.handlers == null )
 		this.initHandlers();
 
-	this.handlers.push(handler);
+	this.handlers[this.handlers.length] = handler;
 };/** @include "index.js" */
 
 ModularGrid.Utils.CookieStore = {};
@@ -294,7 +294,7 @@ ModularGrid.OpacityChanger.stepUpOpacity = function() {
 };
 
 ModularGrid.OpacityChanger.addHandler = function (handler) {
-	this.handlers.push(handler);
+	this.handlers[this.handlers.length] = handler;
 };
 
 ModularGrid.OpacityChanger.updateOpacity = function(opacity) {
@@ -590,7 +590,7 @@ ModularGrid.Guides.createGuidesHTML = function (items) {
 
 	if ( items ) {
 		var currentItem, styleParams, borderStyle = this.params.lineWidth + ' ' + this.params.lineStyle + ' ' + this.params.lineColor + ' !important';
-		for(var i = 0, length = items.length; i < length; i++) {
+		for(var i = items.length; i--;) {
 			currentItem = items[i];
 			styleParams = {
 				position: 'absolute'
@@ -913,7 +913,7 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 
 			opacity: params.opacity
 		};
-	for(var i = 0, length = params.vDivisions; i < length; i++) {
+	for(var i = params.vDivisions; i--;) {
 		styleCSS.left = x + '%';
 		html += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
 
@@ -1242,19 +1242,15 @@ ModularGrid.Resizer.init = function (params, grid) {
 
 	var defaultSize = this.detectDefaultSize();
 	if ( defaultSize ) {
-		var sizes = [ defaultSize ];
+		var sizes = [ defaultSize ], target_sizes = this.params.sizes;
 
-		if ( this.params.sizes.length ) {
-			for(var i = 0, length = this.params.sizes.length; i < length; i++)
-				sizes.push( this.params.sizes[i] );
+		if ( target_sizes.length ) {
+			for(var i = 0, length = target_sizes.length; i < length; i++)
+				sizes[sizes.length] = target_sizes[i];
 		}
 		else {
 			if ( grid.params.minWidth )
-				sizes.push(
-					{
-						width: grid.params.minWidth
-					}
-				);
+				sizes[sizes.length] = {	width: grid.params.minWidth	};
 		}
 
 		if ( sizes.length > 1 ) {

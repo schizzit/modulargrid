@@ -60,7 +60,7 @@ ModularGrid.Guides.createGuidesHTML = function (items) {
 
 	if ( items ) {
 		var currentItem, styleParams, borderStyle = this.params.lineWidth + ' ' + this.params.lineStyle + ' ' + this.params.lineColor + ' !important';
-		for(var i = 0, length = items.length; i < length; i++) {
+		for(var i = items.length; i--;) {
 			currentItem = items[i];
 			styleParams = {
 				position: 'absolute'

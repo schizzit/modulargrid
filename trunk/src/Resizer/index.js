@@ -54,19 +54,15 @@ ModularGrid.Resizer.init = function (params, grid) {
 
 	var defaultSize = this.detectDefaultSize();
 	if ( defaultSize ) {
-		var sizes = [ defaultSize ];
+		var sizes = [ defaultSize ], target_sizes = this.params.sizes;
 
-		if ( this.params.sizes.length ) {
-			for(var i = 0, length = this.params.sizes.length; i < length; i++)
-				sizes.push( this.params.sizes[i] );
+		if ( target_sizes.length ) {
+			for(var i = 0, length = target_sizes.length; i < length; i++)
+				sizes[sizes.length] = target_sizes[i];
 		}
 		else {
 			if ( grid.params.minWidth )
-				sizes.push(
-					{
-						width: grid.params.minWidth
-					}
-				);
+				sizes[sizes.length] = {	width: grid.params.minWidth	};
 		}
 
 		if ( sizes.length > 1 ) {

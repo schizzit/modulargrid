@@ -50,5 +50,5 @@ ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
 	if ( this.handlers == null )
 		this.initHandlers();
 
-	this.handlers.push(handler);
+	this.handlers[this.handlers.length] = handler;
 };
