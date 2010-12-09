@@ -932,6 +932,8 @@ ModularGrid.Grid.createVerticalGridHTML = function (params) {
 
 		if ( params.minWidth )
 			widthContainerStyle['min-width'] = params.minWidth + 'px';
+		else
+			alert('Ошибка: не задан параметр minWidth\nСетка может отображаться некорректно\n\nЧтобы сетка отображалась корректно, задайте параметр minWidth')
 	}
 
 	if ( params.centered ) {
