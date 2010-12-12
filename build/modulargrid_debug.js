@@ -38,7 +38,7 @@ ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
 ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
 	this.handlers = [];
 
-	var code = this.target + '.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
+	var code = this.target + '.on' + this.eventName.toLowerCase() +  '=function(event){self.genericHandler(event);};';
 
 	var self = this;
 	eval(code);
@@ -55,54 +55,57 @@ ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
 	this.handlers[this.handlers.length] = handler;
 };/** @include "index.js" */
 
-ModularGrid.Utils.CookieStore = {};
+ModularGrid.Utils.CookieStore = {
 
-ModularGrid.Utils.CookieStore.setValue = function(name, value) {
-	ModularGrid.Utils.CookieStore.setCookie(name, value)
-};
+	setValue: function(name, value) {
+		ModularGrid.Utils.CookieStore.setCookie(name, value)
+	},
 
-ModularGrid.Utils.CookieStore.getValue = function(name) {
-	return ModularGrid.Utils.CookieStore.getCookie(name);
-};
+	getValue: function(name) {
+		return ModularGrid.Utils.CookieStore.getCookie(name);
+	},
 
-/**
- * Backend to save value
- * @private
- * @param {String} name имя сохраняемой переменной
- * @param {Object} value занчение сохраняемой переменной
- */
-ModularGrid.Utils.CookieStore.setCookie = function(name, value) {
-	var today = new Date(), expires = new Date();
-	expires.setTime(today.getTime() + 31536000000); //3600000 * 24 * 365
+	/**
+	 * Backend to save value
+	 * @private
+	 * @param {String} name имя сохраняемой переменной
+	 * @param {Object} value занчение сохраняемой переменной
+	 */
+	setCookie: function(name, value) {
+		var today = new Date(), expires = new Date();
+		expires.setTime(today.getTime() + 31536000000); //3600000 * 24 * 365
 
-	document.cookie = name + "=" + escape(value) + "; expires=" + expires;
-};
+		document.cookie = name + "=" + escape(value) + "; expires=" + expires;
+	},
 
-/**
- * Backend to restore value
- * @private
- * @param {String} name имя сохранённой переменной
- * @return {Object} значение сохранённой переменной
- */
-ModularGrid.Utils.CookieStore.getCookie = function(name) {
-	var cookie = " " + document.cookie;
-	var search = " " + name + "=";
-	var setStr = null;
-	var offset = 0;
-	var end = 0;
-	if (cookie.length > 0) {
-		offset = cookie.indexOf(search);
-		if (offset != -1) {
-			offset += search.length;
-			end = cookie.indexOf(";", offset)
-			if (end == -1) {
-				end = cookie.length;
+	/**
+	 * Backend to restore value
+	 * @private
+	 * @param {String} name имя сохранённой переменной
+	 * @return {Object} значение сохранённой переменной
+	 */
+	getCookie: function(name) {
+		var cookie = " " + document.cookie;
+		var search = " " + name + "=";
+		var setStr = null;
+		var offset = 0;
+		var end = 0;
+
+		if (cookie.length > 0) {
+			offset = cookie.indexOf(search);
+			if (offset != -1) {
+				offset += search.length;
+				end = cookie.indexOf(";", offset)
+				if (end == -1) {
+					end = cookie.length;
+				}
+				setStr = unescape(cookie.substring(offset, end));
 			}
-			setStr = unescape(cookie.substring(offset, end));
 		}
+
+		return(setStr);
 	}
 
-	return(setStr);
 };/** @include "index.js" */
 
 /**
@@ -127,72 +130,73 @@ ModularGrid.Utils.StateChanger = function (eventProvider, shouldChange, stateCha
  * @include "namespace.js"
  * @include "CookieStore.js"
  */
+ModularGrid.Utils = {
 
-ModularGrid.Utils.updateCSSHeight = function(element, value, callback) {
-	if ( element !== null ) {
-		element.style.height = value;
+	updateCSSHeight: function(element, value, callback) {
+		if ( element !== null ) {
+			element.style.height = value;
 
-		if ( callback )
-			callback();
-	}
-};
+			if ( callback )
+				callback();
+		}
+	},
 
-/**
- * @return {Number} высота области для сетки в пикселах
- */
-ModularGrid.Utils.getClientHeight = function () {
-	var height = Math.max(document.documentElement.clientHeight, this.getDocumentBodyElement().offsetHeight);
+	/**
+	 * @return {Number} высота области для сетки в пикселах
+	 */
+	getClientHeight: function () {
+		var height = Math.max(document.documentElement.clientHeight, this.getDocumentBodyElement().offsetHeight);
 
-	if ( window.scrollMaxY )
-		height = Math.max(height, window.scrollMaxY);
+		if ( window.scrollMaxY )
+			height = Math.max(height, window.scrollMaxY);
 
-	if ( document.documentElement.scrollHeight )
-		height = Math.max(height, document.documentElement.scrollHeight);
+		if ( document.documentElement.scrollHeight )
+			height = Math.max(height, document.documentElement.scrollHeight);
 
-	return height;
-};
+		return height;
+	},
 
-/**
- * @return {Number} ширина области для сетки в пикселах
- */
-ModularGrid.Utils.getClientWidth = function () {
-	var width = document.documentElement.clientWidth;
-	return width;
-};
+	/**
+	 * @return {Number} ширина области для сетки в пикселах
+	 */
+	getClientWidth: function () {
+		var width = document.documentElement.clientWidth;
+		return width;
+	},
 
-ModularGrid.Utils.documentBodyElement = null;
-/**
-* @private
-* @return {Element} body
-*/
-ModularGrid.Utils.getDocumentBodyElement = function () {
-	if ( this.documentBodyElement == null )
-		this.documentBodyElement = document.getElementsByTagName("body")[0];
+	documentBodyElement: null,
 
-	return this.documentBodyElement;
-};
+	/**
+	 * @private
+	 * @return {Element} body
+	 */
+	getDocumentBodyElement: function () {
+		if ( this.documentBodyElement == null )
+			this.documentBodyElement = document.getElementsByTagName("body")[0];
 
-/**
- * Сливает два хэша
- * @private
- * @param {Object} defaults значения по-умолчанию
- * @param {Object} params переопределенные значения
- * @return {Object} объект из ключей и значений по-умолчанию и новых значений
- */
-ModularGrid.Utils.createParams = function (defaults, params) {
-	var result = {};
+		return this.documentBodyElement;
+	},
 
-	for ( var key in defaults )
-		result[key] = defaults[key];
+	/**
+	 * Сливает два хэша
+	 * @private
+	 * @param {Object} defaults значения по-умолчанию
+	 * @param {Object} params переопределенные значения
+	 * @return {Object} объект из ключей и значений по-умолчанию и новых значений
+	 */
+	createParams: function (defaults, params) {
+		var result = {};
 
-	for ( var key in params )
-		result[key] = params[key];
+		for ( var key in defaults )
+			result[key] = defaults[key];
 
-	return result;
-};
+		for ( var key in params )
+			result[key] = params[key];
 
-ModularGrid.Utils.defaultStyleValueParams =
-	{
+		return result;
+	},
+
+	defaultStyleValueParams: {
 		display: 'block',
 		width: '100%',
 		height: '100%',
@@ -201,26 +205,29 @@ ModularGrid.Utils.defaultStyleValueParams =
 		'float': 'none',
 		visibility: 'visible',
 		border: '0'
-	};
-/**
- * Возвращает CSS-строку для свойства style
- * @private
- * @param {Object} params параметры для строки
- * @return {String} CSS-строка для свойства style
- */
-ModularGrid.Utils.createStyleValue = function (params) {
-	var styleParams = ModularGrid.Utils.createParams(ModularGrid.Utils.defaultStyleValueParams, params);
+	},
 
-	var result = '';
-	for (var key in styleParams) {
-		if ( styleParams[key] )
-			result += key + ':' + styleParams[key] + ';';
+	/**
+	 * Возвращает CSS-строку для свойства style
+	 * @private
+	 * @param {Object} params параметры для строки
+	 * @return {String} CSS-строка для свойства style
+	 */
+	createStyleValue: function (params) {
+		var styleParams = ModularGrid.Utils.createParams(ModularGrid.Utils.defaultStyleValueParams, params);
 
-		if ( styleParams[key] == 'opacity')
-			result += '-khtml-opacity:' + styleParams[key] + ';-moz-opacity:' + styleParams[key] + ';filter:progid:DXImageTransform.Microsoft.Alpha(opacity=' + (styleParams[key] * 100) + ');';
+		var result = '';
+		for (var key in styleParams) {
+			if ( styleParams[key] )
+				result += key + ':' + styleParams[key] + ';';
+
+			if ( styleParams[key] == 'opacity')
+				result += '-khtml-opacity:' + styleParams[key] + ';-moz-opacity:' + styleParams[key] + ';filter:progid:DXImageTransform.Microsoft.Alpha(opacity=' + (styleParams[key] * 100) + ');';
+		}
+
+		return result;
 	}
 
-	return result;
 };/** @include "../index.js" */
 
 ModularGrid.OpacityChanger = {};/** @include "index.js" */
@@ -259,52 +266,55 @@ ModularGrid.OpacityChanger.defaults = {
 	 * @type Number
 	 */
 	opacityStep: 0.05
-};ModularGrid.OpacityChanger.params = null;
+};ModularGrid.OpacityChanger = {
 
-/** @type Array */
-ModularGrid.OpacityChanger.handlers = null;
+	params: null,
 
-/**
- * Устанавливает настройки для гайдов
- *
- * @param {Object}
- *            params параметры гайдов
- */
-ModularGrid.OpacityChanger.init = function(params) {
-	this.params = ModularGrid.Utils.createParams(this.defaults, params);
-	this.handlers = [];
-};
+	/** @type Array */
+	handlers: null,
 
-ModularGrid.OpacityChanger.setOpacity = function(value) {
-	this.params.opacity = value;
-	this.params.opacity = (this.params.opacity < 0 ? 0.0 : this.params.opacity);
-	this.params.opacity = (this.params.opacity > 1 ? 1.0 : this.params.opacity);
+	/**
+	 * Устанавливает настройки для гайдов
+	 *
+	 * @param {Object}
+	 *            params параметры гайдов
+	 */
+	init: function(params) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.handlers = [];
+	},
 
-	this.updateOpacity(this.params.opacity);
+	setOpacity: function(value) {
+		this.params.opacity = value;
+		this.params.opacity = (this.params.opacity < 0 ? 0.0 : this.params.opacity);
+		this.params.opacity = (this.params.opacity > 1 ? 1.0 : this.params.opacity);
 
-	return this.params.opacity;
-};
+		this.updateOpacity(this.params.opacity);
 
-ModularGrid.OpacityChanger.stepDownOpacity = function() {
-	return this.setOpacity(this.params.opacity - this.params.opacityStep);
-};
+		return this.params.opacity;
+	},
 
-ModularGrid.OpacityChanger.stepUpOpacity = function() {
-	return this.setOpacity(this.params.opacity + this.params.opacityStep);
-};
+	stepDownOpacity: function() {
+		return this.setOpacity(this.params.opacity - this.params.opacityStep);
+	},
 
-ModularGrid.OpacityChanger.addHandler = function (handler) {
-	this.handlers[this.handlers.length] = handler;
-};
+	stepUpOpacity: function() {
+		return this.setOpacity(this.params.opacity + this.params.opacityStep);
+	},
 
-ModularGrid.OpacityChanger.updateOpacity = function(opacity) {
-	for(var i = 0, length = this.handlers.length; i < length; i++)
-		this.handlers[i]();
-};
+	addHandler: function (handler) {
+		this.handlers[this.handlers.length] = handler;
+	},
 
-ModularGrid.OpacityChanger.changeElementOpacity = function (element) {
-	if (element)
-		element.style.opacity = this.params.opacity;
+	updateOpacity: function(opacity) {
+		for(var i = 0, length = this.handlers.length; i < length; i++)
+			this.handlers[i]();
+	},
+
+	changeElementOpacity: function (element) {
+		if (element)
+			element.style.opacity = this.params.opacity;
+	}
 };/** @include "../index.js" */
 
 ModularGrid.Image = {};/** @include "index.js" */
@@ -369,118 +379,120 @@ ModularGrid.Image.defaults = {
 	 */
 	height: 100
 };/** @include "namespace.js" */
+ModularGrid.Image = {
 
-ModularGrid.Image.showing = false;
-ModularGrid.Image.parentElement = null;
+	showing: false,
+	parentElement: null,
 
-ModularGrid.Image.params = null;
+	params: null,
 
-ModularGrid.Image.imgElement = null;
+	imgElement: null,
 
-/**
- * Устанавливает настройки для гайдов
- *
- * @param {Object}
- *            params параметры гайдов
- */
-ModularGrid.Image.init = function(params) {
-	this.params = ModularGrid.Utils.createParams(this.defaults, params);
-};
+	/**
+	 * Устанавливает настройки для гайдов
+	 *
+	 * @param {Object}
+	 *            params параметры гайдов
+	 */
+	init: function(params) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+	},
 
-/**
- * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
- *
- * @private
- * @param {Object}
- *            params параметры создания элемента и гайдов
- * @return {Element} корневой HTML-элемент
- */
-ModularGrid.Image.createParentElement = function(params) {
-	// создаем элемент и ресетим style
-	var parentElement = document.createElement("div");
+	/**
+	 * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+	 *
+	 * @private
+	 * @param {Object}
+	 *            params параметры создания элемента и гайдов
+	 * @return {Element} корневой HTML-элемент
+	 */
+	createParentElement: function(params) {
+		// создаем элемент и ресетим style
+		var parentElement = document.createElement("div");
 
-	var parentElementStyle = {
-		position : 'absolute',
-		left : '0',
-		top : '0',
+		var parentElementStyle = {
+			position : 'absolute',
+			left : '0',
+			top : '0',
 
-		width : '100%',
-		height : params.height + 'px',
+			width : '100%',
+			height : params.height + 'px',
 
-		opacity: 1,
-		'z-index' : params['z-index']
-	};
+			opacity: 1,
+			'z-index' : params['z-index']
+		};
 
-	parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
+		parentElement.setAttribute("style", ModularGrid.Utils.createStyleValue(parentElementStyle));
 
-	// создаём HTML гайдов
-	parentElement.appendChild(this.createImageDOM(params));
+		// создаём HTML гайдов
+		parentElement.appendChild(this.createImageDOM(params));
 
-	// добавляем элемент в DOM
-	ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
+		// добавляем элемент в DOM
+		ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
 
-	return parentElement;
-};
+		return parentElement;
+	},
 
-/**
- * Создает HTML-строку для отображения гайдов
- *
- * @private
- * @param {Array}
- *            items массив настроек для создания гайдов
- * @return {String} HTML-строка для отображения гайдов
- */
-ModularGrid.Image.createImageDOM = function(params) {
-	var imageStyle = {
-		width : 'auto',
-		height : 'auto',
+	/**
+	 * Создает HTML-строку для отображения гайдов
+	 *
+	 * @private
+	 * @param {Array}
+	 *            items массив настроек для создания гайдов
+	 * @return {String} HTML-строка для отображения гайдов
+	 */
+	createImageDOM: function(params) {
+		var imageStyle = {
+			width : 'auto',
+			height : 'auto',
 
-		opacity : ModularGrid.OpacityChanger.params.opacity
-	};
-	var imageContainerStyle = {
-		'padding-top' : params.marginTop + 'px',
+			opacity : ModularGrid.OpacityChanger.params.opacity
+		};
+		var imageContainerStyle = {
+			'padding-top' : params.marginTop + 'px',
 
-		width : 'auto',
-		height : 'auto'
-	};
+			width : 'auto',
+			height : 'auto'
+		};
 
-	if (params.centered) {
-		imageContainerStyle['text-align'] = 'center';
-		imageStyle.margin = '0 auto';
-	} else {
-		imageContainerStyle['padding-left'] = params.marginLeft, imageContainerStyle['padding-right'] = params.marginRight;
-	};
+		if (params.centered) {
+			imageContainerStyle['text-align'] = 'center';
+			imageStyle.margin = '0 auto';
+		} else {
+			imageContainerStyle['padding-left'] = params.marginLeft, imageContainerStyle['padding-right'] = params.marginRight;
+		};
 
-	var imageDOMParent = document.createElement('div');
-	imageDOMParent.setAttribute("style", ModularGrid.Utils.createStyleValue(imageContainerStyle));
+		var imageDOMParent = document.createElement('div');
+		imageDOMParent.setAttribute("style", ModularGrid.Utils.createStyleValue(imageContainerStyle));
 
-	this.imgElement = document.createElement('img');
-	this.imgElement.setAttribute('src', params.src);
-	this.imgElement.setAttribute('width', params.width);
-	this.imgElement.setAttribute('height', params.height);
-	this.imgElement.setAttribute('style', ModularGrid.Utils.createStyleValue(imageStyle));
+		this.imgElement = document.createElement('img');
+		this.imgElement.setAttribute('src', params.src);
+		this.imgElement.setAttribute('width', params.width);
+		this.imgElement.setAttribute('height', params.height);
+		this.imgElement.setAttribute('style', ModularGrid.Utils.createStyleValue(imageStyle));
 
-	imageDOMParent.appendChild(this.imgElement);
+		imageDOMParent.appendChild(this.imgElement);
 
-	return imageDOMParent;
-};
+		return imageDOMParent;
+	},
 
-ModularGrid.Image.opacityHandler = function () {
-	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Image.imgElement);
-};
+	opacityHandler: function () {
+		ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Image.imgElement);
+	},
 
-/**
- * Скрывает-показывает гайды
- */
-ModularGrid.Image.toggleVisibility = function() {
-	this.showing = !this.showing;
+	/**
+	 * Скрывает-показывает гайды
+	 */
+	toggleVisibility: function() {
+		this.showing = !this.showing;
 
-	if (this.showing && this.parentElement == null) {
-		this.parentElement = this.createParentElement(this.params);
+		if (this.showing && this.parentElement == null) {
+			this.parentElement = this.createParentElement(this.params);
+		}
+
+		if (this.parentElement)
+			this.parentElement.style.display = (this.showing ? 'block' : 'none');
 	}
-
-	if (this.parentElement)
-		this.parentElement.style.display = (this.showing ? 'block' : 'none');
 };/** @include "../index.js" */
 ModularGrid.Guides = {};/** @include "index.js */
 
@@ -530,144 +542,148 @@ ModularGrid.Guides.defaults = {
 	items: []
 };/** @include "namespace.js" */
 
-ModularGrid.Guides.showing = false;
-ModularGrid.Guides.parentElement = null;
+ModularGrid.Guides = {
 
-ModularGrid.Guides.params = null;
+	showing: false,
+	parentElement: null,
 
-/**
- * Устанавливает настройки для гайдов
- * @param {Object} params параметры гайдов
- */
-ModularGrid.Guides.init = function (params) {
-	this.params = ModularGrid.Utils.createParams(this.defaults, params);
-};
+	params: null,
 
-/**
- * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
- * @private
- * @param {Object} params параметры создания элемента и гайдов
- * @return {Element} корневой HTML-элемент
- */
-ModularGrid.Guides.createParentElement = function (params) {
-	// создаем элемент и ресетим style
-	var parentElement = document.createElement("div");
+	/**
+	 * Устанавливает настройки для гайдов
+	 * @param {Object} params параметры гайдов
+	 */
+	init: function (params) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+	},
 
-	var parentElementStyleValue =
-		ModularGrid.Utils.createStyleValue(
-			{
-				position: 'absolute',
-				left: '0',
-				top: '0',
+	/**
+	 * Создает корневой HTML-элемент и HTML для гайдов и добавляет его в DOM
+	 * @private
+	 * @param {Object} params параметры создания элемента и гайдов
+	 * @return {Element} корневой HTML-элемент
+	 */
+	createParentElement: function (params) {
+		// создаем элемент и ресетим style
+		var parentElement = document.createElement("div");
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
-				width: '100%',
+		var parentElementStyleValue =
+			ModularGrid.Utils.createStyleValue(
+				{
+					position: 'absolute',
+					left: '0',
+					top: '0',
 
-				'text-align': 'center',
+					height: ModularGrid.Utils.getClientHeight() + 'px',
+					width: '100%',
 
-				'z-index': params['z-index']
-			}
-		);
-	parentElement.setAttribute("style", parentElementStyleValue);
+					'text-align': 'center',
 
-	// создаём HTML гайдов
-	parentElement.innerHTML = this.createGuidesHTML(params.items);
+					'z-index': params['z-index']
+				}
+			);
+		parentElement.setAttribute("style", parentElementStyleValue);
 
-	// добавляем элемент в DOM
-	ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
+		// создаём HTML гайдов
+		parentElement.innerHTML = this.createGuidesHTML(params.items);
 
-	return parentElement;
-};
+		// добавляем элемент в DOM
+		ModularGrid.Utils.getDocumentBodyElement().appendChild(parentElement);
 
-/**
- * Создает HTML-строку для отображения гайдов
- * @private
- * @param {Array} items массив настроек для создания гайдов
- * @return {String} HTML-строка для отображения гайдов
- */
-ModularGrid.Guides.createGuidesHTML = function (items) {
-	var html = '';
+		return parentElement;
+	},
 
-	if ( items ) {
-		var currentItem, styleParams, borderStyle = this.params.lineWidth + ' ' + this.params.lineStyle + ' ' + this.params.lineColor + ' !important';
-		for(var i = items.length; i--;) {
-			currentItem = items[i];
-			styleParams = {
-				position: 'absolute'
+	/**
+	 * Создает HTML-строку для отображения гайдов
+	 * @private
+	 * @param {Array} items массив настроек для создания гайдов
+	 * @return {String} HTML-строка для отображения гайдов
+	 */
+	createGuidesHTML: function (items) {
+		var html = '';
+
+		if ( items ) {
+			var currentItem, styleParams, borderStyle = this.params.lineWidth + ' ' + this.params.lineStyle + ' ' + this.params.lineColor + ' !important';
+			for(var i = items.length; i--;) {
+				currentItem = items[i];
+				styleParams = {
+					position: 'absolute'
+				};
+
+				switch ( currentItem.type ) {
+					case 'center':
+						styleParams.width = '100%';
+						styleParams.height = '100%';
+
+						var innerStyleParams =
+							{
+								width: currentItem.width,
+								height: '100%',
+
+								margin: '0 auto',
+
+								'border-left': borderStyle,
+								'border-right': borderStyle
+							};
+
+						html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"><div style="' + ModularGrid.Utils.createStyleValue(innerStyleParams) + '"></div></div>';
+					break;
+
+					case 'vertical':
+						styleParams.width = '0px';
+						styleParams.height = '100%';
+
+						if ( currentItem.left != null ) {
+							styleParams.left = currentItem.left;
+							styleParams['border-right'] = borderStyle;
+						}
+
+						if ( currentItem.right != null ) {
+							styleParams.right = currentItem.right;
+							styleParams['border-left'] = borderStyle;
+						}
+
+						html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
+					break;
+
+					case 'horizontal':
+						styleParams.width = '100%';
+						styleParams.height = '0px';
+
+						if ( currentItem.top != null ) {
+							styleParams.top = currentItem.top;
+							styleParams['border-bottom'] = borderStyle;
+						}
+
+						if ( currentItem.bottom != null ) {
+							styleParams.bottom = currentItem.bottom;
+							styleParams['border-top'] = borderStyle;
+						}
+
+						html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
+					break;
+				}
+
 			};
+		}
 
-			switch ( currentItem.type ) {
-				case 'center':
-					styleParams.width = '100%';
-					styleParams.height = '100%';
+		return html;
+	},
 
-					var innerStyleParams =
-						{
-							width: currentItem.width,
-							height: '100%',
+	/**
+	 * Скрывает-показывает гайды
+	 */
+	toggleVisibility: function () {
+		this.showing = !this.showing;
 
-							margin: '0 auto',
+		if ( this.showing && this.parentElement == null ) {
+			this.parentElement = this.createParentElement(this.params);
+		}
 
-							'border-left': borderStyle,
-							'border-right': borderStyle
-						};
-
-					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"><div style="' + ModularGrid.Utils.createStyleValue(innerStyleParams) + '"></div></div>';
-				break;
-
-				case 'vertical':
-					styleParams.width = '0px';
-					styleParams.height = '100%';
-
-					if ( currentItem.left != null ) {
-						styleParams.left = currentItem.left;
-						styleParams['border-right'] = borderStyle;
-					}
-
-					if ( currentItem.right != null ) {
-						styleParams.right = currentItem.right;
-						styleParams['border-left'] = borderStyle;
-					}
-
-					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
-				break;
-
-				case 'horizontal':
-					styleParams.width = '100%';
-					styleParams.height = '0px';
-
-					if ( currentItem.top != null ) {
-						styleParams.top = currentItem.top;
-						styleParams['border-bottom'] = borderStyle;
-					}
-
-					if ( currentItem.bottom != null ) {
-						styleParams.bottom = currentItem.bottom;
-						styleParams['border-top'] = borderStyle;
-					}
-
-					html += '<div style="' + ModularGrid.Utils.createStyleValue(styleParams) + '"></div>';
-				break;
-			}
-
-		};
+		if ( this.parentElement )
+			this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
 	}
 
-	return html;
-};
-
-/**
- * Скрывает-показывает гайды
- */
-ModularGrid.Guides.toggleVisibility = function () {
-	this.showing = !this.showing;
-
-	if ( this.showing && this.parentElement == null ) {
-		this.parentElement = this.createParentElement(this.params);
-	}
-
-	if ( this.parentElement )
-		this.parentElement.style.display = ( this.showing ? 'block' : 'none' );
 };/** @include "../index.js" */
 ModularGrid.Grid = {};/** @include "index.js */
 
@@ -795,370 +811,373 @@ ModularGrid.Grid.defaults = {
 	lineColor: "#555"
 };/** @include "namespace.js" */
 
-/**
- * Показывается ли хотя бы один из элементов модульной сетки (шрифтовая сетка, столбцы или строки)
- * @type Boolean
- */
-ModularGrid.Grid.showing = false;
+ModularGrid.Grid = {
 
-ModularGrid.Grid.fontGridShowing = false;
-ModularGrid.Grid.fontGridParentElement = null;
+	/**
+	 * Показывается ли хотя бы один из элементов модульной сетки (шрифтовая сетка, столбцы или строки)
+	 * @type Boolean
+	 */
+	showing: false,
 
-ModularGrid.Grid.horizontalGridShowing = false;
-ModularGrid.Grid.horizontalGridParentElement = null;
+	fontGridShowing: false,
+	fontGridParentElement: null,
 
-ModularGrid.Grid.verticalGridShowing = false;
-ModularGrid.Grid.verticalGridParentElement = null;
+	horizontalGridShowing: false,
+	horizontalGridParentElement: null,
 
-/**
- * Параметры модульной сетки (значения по-умолчанию + пользваотельские настройки)
- * @type Object
- */
-ModularGrid.Grid.params = null;
+	verticalGridShowing: false,
+	verticalGridParentElement: null,
 
-/**
- * Устанавливает настройки для гайдов
- * @param {Object} params параметры гайдов
- */
-ModularGrid.Grid.init = function (params) {
-	this.params = ModularGrid.Utils.createParams(this.defaults, params);
-};
+	/**
+	 * Параметры модульной сетки (значения по-умолчанию + пользваотельские настройки)
+	 * @type Object
+	 */
+	params: null,
 
-/**
- * Создает элементы-родители для элементов модульной сетки
- * в порядке столбцы, строки, шрифтовая сетка и добавляет их в DOM
- * @private
- * @param {Object} params параметры создания элемента и гайдов
- * @return {Element} корневой HTML-элемент модульной сетки
- */
-ModularGrid.Grid.createParentElement = function (params) {
-	var parentElement = ModularGrid.Utils.getDocumentBodyElement();
+	/**
+	 * Устанавливает настройки для гайдов
+	 * @param {Object} params параметры гайдов
+	 */
+	init: function (params) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+	},
 
-	parentElement.appendChild( this.createVerticalGridParentElement(params) );
-	parentElement.appendChild( this.createHorizontalGridParentElement(params) );
-	parentElement.appendChild( this.createFontGridParentElement(params) );
+	/**
+	 * Создает элементы-родители для элементов модульной сетки
+	 * в порядке столбцы, строки, шрифтовая сетка и добавляет их в DOM
+	 * @private
+	 * @param {Object} params параметры создания элемента и гайдов
+	 * @return {Element} корневой HTML-элемент модульной сетки
+	 */
+	createParentElement: function (params) {
+		var parentElement = ModularGrid.Utils.getDocumentBodyElement();
 
-	return parentElement;
-};
+		parentElement.appendChild( this.createVerticalGridParentElement(params) );
+		parentElement.appendChild( this.createHorizontalGridParentElement(params) );
+		parentElement.appendChild( this.createFontGridParentElement(params) );
 
-ModularGrid.Grid.opacityHandler = function () {
-	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.fontGridParentElement);
-	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.verticalGridParentElement);
-	ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.horizontalGridParentElement);
-};
+		return parentElement;
+	},
 
-ModularGrid.Grid.createVerticalGridParentElement = function (params) {
-	this.verticalGridParentElement = document.createElement('div');
-	this.verticalGridParentElement.setAttribute(
-		"style",
-		ModularGrid.Utils.createStyleValue(
-			{
-				position: 'absolute',
-				left: '0',
-				top: '0',
+	opacityHandler: function () {
+		ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.fontGridParentElement);
+		ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.verticalGridParentElement);
+		ModularGrid.OpacityChanger.changeElementOpacity(ModularGrid.Grid.horizontalGridParentElement);
+	},
 
-				display: 'none',
+	createVerticalGridParentElement: function (params) {
+		this.verticalGridParentElement = document.createElement('div');
+		this.verticalGridParentElement.setAttribute(
+			"style",
+			ModularGrid.Utils.createStyleValue(
+				{
+					position: 'absolute',
+					left: '0',
+					top: '0',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
-				width: '100%',
+					display: 'none',
 
-				opacity: ModularGrid.OpacityChanger.params.opacity,
-				'z-index': params['z-index']
-			}
-		)
-	);
+					height: ModularGrid.Utils.getClientHeight() + 'px',
+					width: '100%',
 
-	this.updateVerticalGridContents();
-
-	return this.verticalGridParentElement;
-};
-
-ModularGrid.Grid.updateVerticalGridContents = function () {
-	html = ModularGrid.Grid.createVerticalGridHTML(ModularGrid.Grid.params);
-	ModularGrid.Grid.verticalGridParentElement.innerHTML = html;
-};
-
-/**
- * @private
- * @return {String} HTML для отображения вертикальной модульной сетки
- */
-ModularGrid.Grid.createVerticalGridHTML = function (params) {
-	var html = '';
-
-	var fluid = ( typeof(params.width) == "string" && params.width.substr(params.width.length - 1) == "%" );
-	var width = (fluid ? params.minWidth : params.width);
-
-	// создаём вертикальную сетку
-	var gutterCount = params.vDivisions - 1;
-	( params.prependGutter ? gutterCount++ : null );
-	( params.appendGutter ? gutterCount++ : null );
-
-	var gutterPercent = (params.gutter / width) * 100;
-	var divisionPercent = (100 - gutterCount * gutterPercent) / params.vDivisions;
-
-	var x = (params.prependGutter ? gutterPercent : 0);
-
-	var styleCSS =
-		{
-			position: 'relative',
-
-			'float': 'left',
-
-			'margin-right': '-' + divisionPercent + '%',
-
-			width: divisionPercent + '%',
-			height: ModularGrid.Utils.getClientHeight() + 'px',
-
-			background: params.color,
-
-			opacity: params.opacity
-		};
-	for(var i = params.vDivisions; i--;) {
-		styleCSS.left = x + '%';
-		html += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
-
-		x += gutterPercent + divisionPercent;
-	};
-
-	// создаём контейнер колонок (центрирование, фиксация ширины и т.п.)
-	var widthContainerStyle =
-		{
-			width: ( fluid ? params.width : width + 'px' )
-		};
-
-	if ( fluid ) {
-		if ( params.maxWidth )
-			widthContainerStyle['max-width'] = params.maxWidth + 'px';
-
-		if ( params.minWidth )
-			widthContainerStyle['min-width'] = params.minWidth + 'px';
-		else
-			alert('Ошибка: не задан параметр minWidth\nСетка может отображаться некорректно\n\nЧтобы сетка отображалась корректно, задайте параметр minWidth')
-	}
-
-	if ( params.centered ) {
-		var centeredContainerStyle =
-			{
-				'text-align': 'center'
-			};
-		widthContainerStyle.margin = '0 auto';
-
-		html = '<div style="' + ModularGrid.Utils.createStyleValue(centeredContainerStyle) + '"><div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div></div>';
-	}
-	else
-		html = '<div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div>';
-
-	var marginContainerStyle =
-		{
-			width: 'auto',
-
-			padding: '0 ' + params.marginRight + ' 0 ' + params.marginLeft
-		};
-	html = '<div style="' + ModularGrid.Utils.createStyleValue(marginContainerStyle) + '">' + html + '</div>';
-
-	return html;
-};
-
-ModularGrid.Grid.createHorizontalGridParentElement = function (params) {
-	this.horizontalGridParentElement = document.createElement('div');
-	// ресетим style
-	var parentElementStyleValue =
-		ModularGrid.Utils.createStyleValue(
-			{
-				position: 'absolute',
-				left: '0',
-				top: '0',
-
-				display: 'none',
-
-				height: ModularGrid.Utils.getClientHeight() + 'px',
-				width: '100%',
-
-				opacity: ModularGrid.OpacityChanger.params.opacity,
-				'z-index': params['z-index']
-			}
+					opacity: ModularGrid.OpacityChanger.params.opacity,
+					'z-index': params['z-index']
+				}
+			)
 		);
-	this.horizontalGridParentElement.setAttribute("style", parentElementStyleValue);
 
-	this.updateHorizontalGridContents();
+		this.updateVerticalGridContents();
 
-	return this.horizontalGridParentElement;
-};
+		return this.verticalGridParentElement;
+	},
 
-ModularGrid.Grid.updateHorizontalGridContents = function () {
-	html = ModularGrid.Grid.createHorizontalGridHTML(ModularGrid.Grid.params);
-	ModularGrid.Grid.horizontalGridParentElement.innerHTML = html;
-};
+	updateVerticalGridContents: function () {
+		html = ModularGrid.Grid.createVerticalGridHTML(ModularGrid.Grid.params);
+		ModularGrid.Grid.verticalGridParentElement.innerHTML = html;
+	},
 
+	/**
+	 * @private
+	 * @return {String} HTML для отображения вертикальной модульной сетки
+	 */
+	createVerticalGridHTML: function (params) {
+		var html = '';
 
-/**
- * @private
- * @return {String} HTML для отображения горизонтальной модульной сетки
- */
-ModularGrid.Grid.createHorizontalGridHTML = function (params) {
-	var horizontalGridHTML = '';
+		var fluid = ( typeof(params.width) == "string" && params.width.substr(params.width.length - 1) == "%" );
+		var width = (fluid ? params.minWidth : params.width);
 
-	var height = ModularGrid.Utils.getClientHeight();
-	var y = params.marginTop;
+		// создаём вертикальную сетку
+		var gutterCount = params.vDivisions - 1;
+		( params.prependGutter ? gutterCount++ : null );
+		( params.appendGutter ? gutterCount++ : null );
 
-	var hCounter = 0;
-	var hCounterMax = params.hDivisions + 1;
-	var hHeight = params.lineHeight * params.hDivisions;
+		var gutterPercent = (params.gutter / width) * 100;
+		var divisionPercent = (100 - gutterCount * gutterPercent) / params.vDivisions;
 
-	var styleCSS =
-		{
-			position: 'absolute',
+		var x = (params.prependGutter ? gutterPercent : 0);
 
-			width: 'auto',
+		var styleCSS =
+			{
+				position: 'relative',
 
-			left: params.marginLeft,
-			right: params.marginRight,
+				'float': 'left',
 
-			height: hHeight + 'px',
+				'margin-right': '-' + divisionPercent + '%',
 
-			background: params.color,
-			opacity: params.opacity
+				width: divisionPercent + '%',
+				height: ModularGrid.Utils.getClientHeight() + 'px',
+
+				background: params.color,
+
+				opacity: params.opacity
+			};
+		for(var i = params.vDivisions; i--;) {
+			styleCSS.left = x + '%';
+			html += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+
+			x += gutterPercent + divisionPercent;
 		};
 
-	while ( y < height ) {
-		if ( hCounter == 0 && (y + hHeight) < height ) {
-			styleCSS.top = y + 'px';
-			horizontalGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+		// создаём контейнер колонок (центрирование, фиксация ширины и т.п.)
+		var widthContainerStyle =
+			{
+				width: ( fluid ? params.width : width + 'px' )
+			};
+
+		if ( fluid ) {
+			if ( params.maxWidth )
+				widthContainerStyle['max-width'] = params.maxWidth + 'px';
+
+			if ( params.minWidth )
+				widthContainerStyle['min-width'] = params.minWidth + 'px';
+			else
+				alert('Ошибка: не задан параметр minWidth\nСетка может отображаться некорректно\n\nЧтобы сетка отображалась корректно, задайте параметр minWidth')
 		}
 
-		y += params.lineHeight;
+		if ( params.centered ) {
+			var centeredContainerStyle =
+				{
+					'text-align': 'center'
+				};
+			widthContainerStyle.margin = '0 auto';
 
-		hCounter++;
-		if ( hCounter == hCounterMax )
-			hCounter = 0;
-	}
+			html = '<div style="' + ModularGrid.Utils.createStyleValue(centeredContainerStyle) + '"><div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div></div>';
+		}
+		else
+			html = '<div style="' + ModularGrid.Utils.createStyleValue(widthContainerStyle) + '">' + html + '</div>';
 
-	return horizontalGridHTML;
-};
+		var marginContainerStyle =
+			{
+				width: 'auto',
 
-ModularGrid.Grid.createFontGridParentElement = function (params) {
-	this.fontGridParentElement = document.createElement('div');
-	// ресетим style
-	var parentElementStyleValue =
-		ModularGrid.Utils.createStyleValue(
+				padding: '0 ' + params.marginRight + ' 0 ' + params.marginLeft
+			};
+		html = '<div style="' + ModularGrid.Utils.createStyleValue(marginContainerStyle) + '">' + html + '</div>';
+
+		return html;
+	},
+
+	createHorizontalGridParentElement: function (params) {
+		this.horizontalGridParentElement = document.createElement('div');
+		// ресетим style
+		var parentElementStyleValue =
+			ModularGrid.Utils.createStyleValue(
+				{
+					position: 'absolute',
+					left: '0',
+					top: '0',
+
+					display: 'none',
+
+					height: ModularGrid.Utils.getClientHeight() + 'px',
+					width: '100%',
+
+					opacity: ModularGrid.OpacityChanger.params.opacity,
+					'z-index': params['z-index']
+				}
+			);
+		this.horizontalGridParentElement.setAttribute("style", parentElementStyleValue);
+
+		this.updateHorizontalGridContents();
+
+		return this.horizontalGridParentElement;
+	},
+
+	updateHorizontalGridContents: function () {
+		html = ModularGrid.Grid.createHorizontalGridHTML(ModularGrid.Grid.params);
+		ModularGrid.Grid.horizontalGridParentElement.innerHTML = html;
+	},
+
+	/**
+	 * @private
+	 * @return {String} HTML для отображения горизонтальной модульной сетки
+	 */
+	createHorizontalGridHTML: function (params) {
+		var horizontalGridHTML = '';
+
+		var height = ModularGrid.Utils.getClientHeight();
+		var y = params.marginTop;
+
+		var hCounter = 0;
+		var hCounterMax = params.hDivisions + 1;
+		var hHeight = params.lineHeight * params.hDivisions;
+
+		var styleCSS =
 			{
 				position: 'absolute',
-				left: '0',
-				top: '0',
 
-				display: 'none',
+				width: 'auto',
 
-				height: ModularGrid.Utils.getClientHeight() + 'px',
-				width: '100%',
+				left: params.marginLeft,
+				right: params.marginRight,
 
-				opacity: ModularGrid.OpacityChanger.params.opacity,
-				'z-index': params['z-index']
+				height: hHeight + 'px',
+
+				background: params.color,
+				opacity: params.opacity
+			};
+
+		while ( y < height ) {
+			if ( hCounter == 0 && (y + hHeight) < height ) {
+				styleCSS.top = y + 'px';
+				horizontalGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
 			}
-		);
-	this.fontGridParentElement.setAttribute("style", parentElementStyleValue);
 
-	this.updateFontGridContents();
+			y += params.lineHeight;
 
-	return this.fontGridParentElement;
-};
+			hCounter++;
+			if ( hCounter == hCounterMax )
+				hCounter = 0;
+		}
 
-ModularGrid.Grid.updateFontGridContents = function () {
-	html = ModularGrid.Grid.createFontGridHTML(ModularGrid.Grid.params);
-	ModularGrid.Grid.fontGridParentElement.innerHTML = html;
-};
+		return horizontalGridHTML;
+	},
 
-/**
- * @private
- * @return {String} HTML для отображения шрифтовой сетки
- */
-ModularGrid.Grid.createFontGridHTML = function (params) {
-	var fontGridHTML = "";
+	createFontGridParentElement: function (params) {
+		this.fontGridParentElement = document.createElement('div');
+		// ресетим style
+		var parentElementStyleValue =
+			ModularGrid.Utils.createStyleValue(
+				{
+					position: 'absolute',
+					left: '0',
+					top: '0',
 
-	var height = ModularGrid.Utils.getClientHeight();
-	var y = params.marginTop + params.lineHeight;
+					display: 'none',
 
-	var styleCSS =
-		{
-			position: 'absolute',
-			height: 0,
+					height: ModularGrid.Utils.getClientHeight() + 'px',
+					width: '100%',
 
-			opacity: params.opacity,
+					opacity: ModularGrid.OpacityChanger.params.opacity,
+					'z-index': params['z-index']
+				}
+			);
+		this.fontGridParentElement.setAttribute("style", parentElementStyleValue);
 
-			'border-bottom': params.lineWidth + ' ' + params.lineStyle + ' ' + params.lineColor + ' !important'
+		this.updateFontGridContents();
+
+		return this.fontGridParentElement;
+	},
+
+	updateFontGridContents: function () {
+		html = ModularGrid.Grid.createFontGridHTML(ModularGrid.Grid.params);
+		ModularGrid.Grid.fontGridParentElement.innerHTML = html;
+	},
+
+	/**
+	 * @private
+	 * @return {String} HTML для отображения шрифтовой сетки
+	 */
+	createFontGridHTML: function (params) {
+		var fontGridHTML = "";
+
+		var height = ModularGrid.Utils.getClientHeight();
+		var y = params.marginTop + params.lineHeight;
+
+		var styleCSS =
+			{
+				position: 'absolute',
+				height: 0,
+
+				opacity: params.opacity,
+
+				'border-bottom': params.lineWidth + ' ' + params.lineStyle + ' ' + params.lineColor + ' !important'
+			};
+
+		while ( y < height ) {
+			styleCSS.top = (y + 'px');
+			fontGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+
+			y += params.lineHeight;
 		};
 
-	while ( y < height ) {
-		styleCSS.top = (y + 'px');
-		fontGridHTML += '<div style="' + ModularGrid.Utils.createStyleValue(styleCSS) + '"></div>';
+		return fontGridHTML;
+	},
 
-		y += params.lineHeight;
-	};
+	/**
+	 * Скрывает-показывает гайды
+	 */
+	toggleVisibility: function () {
+		this.showing = !this.showing;
 
-	return fontGridHTML;
-};
+		this.fontGridShowing = this.showing;
+		this.horizontalGridShowing = this.showing;
+		this.verticalGridShowing = this.showing;
 
-/**
- * Скрывает-показывает гайды
- */
-ModularGrid.Grid.toggleVisibility = function () {
-	this.showing = !this.showing;
+		this.updateFontGridVisibility();
+		this.updateHorizontalGridVisibility();
+		this.updateVerticalGridVisibility();
+	},
 
-	this.fontGridShowing = this.showing;
-	this.horizontalGridShowing = this.showing;
-	this.verticalGridShowing = this.showing;
+	updateFontGridVisibility: function () {
+		if ( this.fontGridShowing && this.fontGridParentElement == null )
+			this.createParentElement(this.params);
 
-	this.updateFontGridVisibility();
-	this.updateHorizontalGridVisibility();
-	this.updateVerticalGridVisibility();
-};
+		if ( this.fontGridParentElement )
+			this.fontGridParentElement.style.display = ( this.fontGridShowing ? 'block' : 'none' );
+	},
 
-ModularGrid.Grid.updateFontGridVisibility = function () {
-	if ( this.fontGridShowing && this.fontGridParentElement == null )
-		this.createParentElement(this.params);
+	updateHorizontalGridVisibility: function () {
+		if ( this.horizontalGridShowing && this.horizontalGridParentElement == null )
+			this.createParentElement(this.params);
 
-	if ( this.fontGridParentElement )
-		this.fontGridParentElement.style.display = ( this.fontGridShowing ? 'block' : 'none' );
-};
+		if ( this.horizontalGridParentElement )
+			this.horizontalGridParentElement.style.display = ( this.horizontalGridShowing ? 'block' : 'none' );
+	},
 
-ModularGrid.Grid.updateHorizontalGridVisibility = function () {
-	if ( this.horizontalGridShowing && this.horizontalGridParentElement == null )
-		this.createParentElement(this.params);
+	updateVerticalGridVisibility: function () {
+		if ( this.verticalGridShowing && this.verticalGridParentElement == null )
+			this.createParentElement(this.params);
 
-	if ( this.horizontalGridParentElement )
-		this.horizontalGridParentElement.style.display = ( this.horizontalGridShowing ? 'block' : 'none' );
-};
+		if ( this.verticalGridParentElement )
+			this.verticalGridParentElement.style.display = ( this.verticalGridShowing ? 'block' : 'none' );
+	},
 
-ModularGrid.Grid.updateVerticalGridVisibility = function () {
-	if ( this.verticalGridShowing && this.verticalGridParentElement == null )
-		this.createParentElement(this.params);
+	toggleHorizontalGridVisibility: function () {
+		this.horizontalGridShowing = !this.horizontalGridShowing;
+		this.updateShowing();
 
-	if ( this.verticalGridParentElement )
-		this.verticalGridParentElement.style.display = ( this.verticalGridShowing ? 'block' : 'none' );
-};
+		this.updateHorizontalGridVisibility();
+	},
 
-ModularGrid.Grid.toggleHorizontalGridVisibility = function () {
-	this.horizontalGridShowing = !this.horizontalGridShowing;
-	this.updateShowing();
+	toggleVerticalGridVisibility: function () {
+		this.verticalGridShowing = !this.verticalGridShowing;
+		this.updateShowing();
 
-	this.updateHorizontalGridVisibility();
-};
+		this.updateVerticalGridVisibility();
+	},
 
-ModularGrid.Grid.toggleVerticalGridVisibility = function () {
-	this.verticalGridShowing = !this.verticalGridShowing;
-	this.updateShowing();
+	toggleFontGridVisibility: function () {
+		this.fontGridShowing = !this.fontGridShowing;
+		this.updateShowing();
 
-	this.updateVerticalGridVisibility();
-};
+		this.updateFontGridVisibility();
+	},
 
-ModularGrid.Grid.toggleFontGridVisibility = function () {
-	this.fontGridShowing = !this.fontGridShowing;
-	this.updateShowing();
+	updateShowing: function () {
+		this.showing = this.fontGridShowing || this.horizontalGridShowing || this.verticalGridShowing;
+	}
 
-	this.updateFontGridVisibility();
-};
-
-ModularGrid.Grid.updateShowing = function () {
-	this.showing = this.fontGridShowing || this.horizontalGridShowing || this.verticalGridShowing;
 };/** @include "../index.js" */
 ModularGrid.Resizer = {};/** @include "index.js */
 
@@ -1187,101 +1206,104 @@ ModularGrid.Resizer.defaults = {
 	 */
 	sizes: []
 };/** @include "namespace.js" */
+ModularGrid.Resizer = {
 
-ModularGrid.Resizer.params = null;
+	params: null,
 
-ModularGrid.Resizer.sizes = null;
-ModularGrid.Resizer.currentSizeIndex = null;
+	sizes: null,
+	currentSizeIndex: null,
 
-ModularGrid.Resizer.title = null;
+	title: null,
 
-ModularGrid.Resizer.detectDefaultSize = function () {
-	var result = null;
+	detectDefaultSize: function () {
+		var result = null;
 
-  if ( typeof( window.innerWidth ) == 'number' && typeof( window.innerHeight ) == 'number' ) {
-  	result =
-  		{
-  			width: window.innerWidth,
-  			height: window.innerHeight
-  		};
-  }
-  else
-  	if ( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-  		result =
-	  		{
-	    		width: document.documentElement.clientWidth,
-	    		height: document.documentElement.clientHeight
-	  		};
-  	}
-  	else
-  		if ( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-  			result =
-	  			{
-	    			width: document.body.clientWidth,
-	    			height: document.body.clientHeight
-	  			};
-  		}
-
-	return result;
-};
-
-ModularGrid.Resizer.getDefaultSize = function () {
-	return this.sizes[0];
-};
-
-ModularGrid.Resizer.getCurrentSize = function () {
-	return this.sizes[this.currentSizeIndex];
-};
-
-/**
- * Устанавливает настройки для гайдов
- * @param {Object} params параметры гайдов
- */
-ModularGrid.Resizer.init = function (params, grid) {
-	this.params = ModularGrid.Utils.createParams(this.defaults, params);
-
-	var defaultSize = this.detectDefaultSize();
-	if ( defaultSize ) {
-		var sizes = [ defaultSize ], target_sizes = this.params.sizes;
-
-		if ( target_sizes.length ) {
-			for(var i = 0, length = target_sizes.length; i < length; i++)
-				sizes[sizes.length] = target_sizes[i];
+		if ( typeof( window.innerWidth ) == 'number' && typeof( window.innerHeight ) == 'number' ) {
+			result =
+ 				{
+					width: window.innerWidth,
+					height: window.innerHeight
+				};
 		}
-		else {
-			if ( grid.params.minWidth )
-				sizes[sizes.length] = {	width: grid.params.minWidth	};
+		else
+			if ( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+				result =
+					{
+						width: document.documentElement.clientWidth,
+						height: document.documentElement.clientHeight
+					};
+			}
+			else
+				if ( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+					result =
+						{
+							width: document.body.clientWidth,
+							height: document.body.clientHeight
+						};
+				}
+
+		return result;
+	},
+
+	getDefaultSize: function () {
+		return this.sizes[0];
+	},
+
+	getCurrentSize: function () {
+		return this.sizes[this.currentSizeIndex];
+	},
+
+	/**
+	 * Устанавливает настройки для гайдов
+	 * @param {Object} params параметры гайдов
+	 */
+	init: function (params, grid) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+
+		var defaultSize = this.detectDefaultSize();
+		if ( defaultSize ) {
+			var sizes = [ defaultSize ], target_sizes = this.params.sizes;
+
+			if ( target_sizes.length ) {
+				for(var i = 0, length = target_sizes.length; i < length; i++)
+					sizes[sizes.length] = target_sizes[i];
+			}
+			else {
+				if ( grid.params.minWidth )
+					sizes[sizes.length] = {	width: grid.params.minWidth	};
+			}
+
+			if ( sizes.length > 1 ) {
+				if ( this.params.changeTitle )
+					this.title = document.title;
+
+				this.sizes = sizes;
+				this.currentSizeIndex = 0;
+			}
 		}
+	},
 
-		if ( sizes.length > 1 ) {
-			if ( this.params.changeTitle )
-				this.title = document.title;
+	toggleSize: function () {
+		if ( this.currentSizeIndex != null ) {
+			this.currentSizeIndex++;
+			this.currentSizeIndex = ( this.currentSizeIndex == this.sizes.length ? 0 : this.currentSizeIndex );
 
-			this.sizes = sizes;
-			this.currentSizeIndex = 0;
+			var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
+			var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
+
+			window.resizeTo(width, height);
+
+			if ( this.params.changeTitle ) {
+				var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
+				if ( this.getCurrentSize().title )
+					titleText = this.getCurrentSize().title;
+
+				document.title = titleText;
+			}
 		}
 	}
-};
 
-ModularGrid.Resizer.toggleSize = function () {
-	if ( this.currentSizeIndex != null ) {
-		this.currentSizeIndex++;
-		this.currentSizeIndex = ( this.currentSizeIndex == this.sizes.length ? 0 : this.currentSizeIndex );
-
-		var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
-		var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
-
-		window.resizeTo(width, height);
-
-		if ( this.params.changeTitle ) {
-			var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
-			if ( this.getCurrentSize().title )
-				titleText = this.getCurrentSize().title;
-
-			document.title = titleText;
-		}
-	}
-}/**
+};/**
  * @include "namespace.js"
  * @include "Utils/index.js"
  * @include "Grid/index.js"
