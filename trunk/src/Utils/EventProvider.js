@@ -36,7 +36,7 @@ ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
 ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
 	this.handlers = [];
 
-	var code = this.target + '.on' + this.eventName.toLowerCase() +  ' = function (event) { self.genericHandler(event); };';
+	var code = this.target + '.on' + this.eventName.toLowerCase() +  '=function(event){self.genericHandler(event);};';
 
 	var self = this;
 	eval(code);
