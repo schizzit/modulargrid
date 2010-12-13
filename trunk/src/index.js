@@ -5,6 +5,7 @@
  * @include "Guides/index.js"
  * @include "Resizer/index.js"
  * @include "OpacityChanger/index.js"
+ * @include "GUI/index.js"
  */
 
 ModularGrid.keyDownEventProvider = null;
@@ -108,7 +109,7 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepUpOpacity,
 			function () {
-				store.setValue('o', self.OpacityChanger.stepUpOpacity());
+				self.OpacityChanger.stepUpOpacity();
 			}
 		);
 	var opacityDownChanger =
@@ -116,50 +117,66 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepDownOpacity,
 			function () {
-				store.setValue('o', self.OpacityChanger.stepDownOpacity());
+				self.OpacityChanger.stepDownOpacity();
 			}
 		);
+	this.OpacityChanger.eventSender.addHandler(
+		'opacityChanged',
+		function(opacity) {
+			store.setValue('o', opacity);
+		}
+	);
 
 	// изображение
 	this.Image.init(params.image);
-	this.OpacityChanger.addHandler(this.Image.opacityHandler);
+	this.OpacityChanger.eventSender.addHandler('opacityChanged', this.Image.opacityHandler);
 	var imageStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Image.params.shouldToggleVisibility,
 			function () {
 				self.Image.toggleVisibility();
-				store.setValue('i', self.Image.showing);
+//				store.setValue('i', self.Image.showing);
 			}
 		);
 
 	// гайды
-	this.Guides.init(params.guides);
+	self.Guides.init(params.guides);
 	var guidesStateChanger =
 		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Guides.params.shouldToggleVisibility,
+			self.getKeyDownEventProvider(),
+			self.Guides.params.shouldToggleVisibility,
 			function () {
 				self.Guides.toggleVisibility();
-				store.setValue('g', self.Guides.showing);
 			}
 		);
+	self.Guides.eventSender.addHandler(
+		'visibilityChanged',
+		function(visible) {
+			store.setValue('g', visible);
+		}
+	);
 
 	// сетка
 	this.Grid.init(params.grid);
-	this.OpacityChanger.addHandler(this.Grid.opacityHandler);
+	this.OpacityChanger.eventSender.addHandler('opacityChanged', this.Grid.opacityHandler);
 	var gridStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Grid.params.shouldToggleVisibility,
 			function () {
 				self.Grid.toggleVisibility();
-
-				store.setValue('v', self.Grid.verticalGridShowing);
-				store.setValue('h', self.Grid.horizontalGridShowing);
-				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'visibilityChanged',
+		function(visible) {
+			store.setValue('v', self.Grid.verticalGridShowing);
+			store.setValue('h', self.Grid.horizontalGridShowing);
+			store.setValue('f', self.Grid.fontGridShowing);
+		}
+	);
+
 
 	var gridFontGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -167,9 +184,15 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleFontGridVisibility,
 			function () {
 				self.Grid.toggleFontGridVisibility();
-				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'fontVisibilityChanged',
+		function(visible) {
+			store.setValue('f', self.Grid.fontGridShowing);
+		}
+	);
+
 
 	var gridHorizontalGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -177,9 +200,15 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleHorizontalGridVisibility,
 			function () {
 				self.Grid.toggleHorizontalGridVisibility();
-				store.setValue('h', self.Grid.horizontalGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'horizontalVisibilityChanged',
+		function(visible) {
+			store.setValue('h', self.Grid.horizontalGridShowing);
+		}
+	);
+
 
 	var gridVerticalGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -187,20 +216,27 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleVerticalGridVisibility,
 			function () {
 				self.Grid.toggleVerticalGridVisibility();
-				store.setValue('v', self.Grid.verticalGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'verticalVisibilityChanged',
+		function(visible) {
+			store.setValue('v', self.Grid.verticalGridShowing);
+		}
+	);
+
 
 	// resizer
-	this.Resizer.init(params.resizer, this.Grid);
+	self.Resizer.init(params.resizer, self.Grid);
 	var resizerSizeChanger =
 		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Resizer.params.shouldToggleSize,
+			self.getKeyDownEventProvider(),
+			self.Resizer.params.shouldToggleSize,
 			function () {
 				self.Resizer.toggleSize();
 			}
 		);
+
 
 	// change dimensions by window resize
 	ModularGrid.getResizeEventProvider().addHandler(
@@ -215,7 +251,9 @@ ModularGrid.init = function (params) {
 		}
 	);
 
-	//
+	self.GUI.init(params.gui);
+	self.GUI.create();
+
 	// восстанавливаем состояния из кук
 	// по-умолчанию: всё скрыто
 	if ( store.getValue('i') == 'true' )
@@ -230,13 +268,13 @@ ModularGrid.init = function (params) {
 		self.Guides.toggleVisibility();
 
 	if ( store.getValue('v') == 'true' )
-		self.Grid.toggleVerticalGridVisibility();
+		self.Grid.toggleVerticalGridVisibility(true);
 
 	if ( store.getValue('h') == 'true' )
-		self.Grid.toggleHorizontalGridVisibility();
+		self.Grid.toggleHorizontalGridVisibility(true);
 
 	if ( store.getValue('f') == 'true' )
-		self.Grid.toggleFontGridVisibility();
+		self.Grid.toggleFontGridVisibility(true);
 
-	self.Grid.updateShowing();
+	self.Grid.updateShowing(true);
 };

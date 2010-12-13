@@ -1,134 +1,11 @@
 /** @namespace */
 var ModularGrid = {};/** @include "../index.js" */
-ModularGrid.Utils = {};/** @include "index.js" */
-
-/**
- * Обертка события от браузера.
- * @constructor
- * @param {String} eventName название события, например "keydown"
- * @param {Function} prepareParams преобразователь event браузера в хеш для обработчика
- * @return {ModularGrid.EventProvider}
- */
-ModularGrid.Utils.EventProvider = function(eventName, prepareParams, target) {
-	this.eventName = eventName;
-	this.prepareParams = prepareParams;
-	this.target = target || 'document';
-
-	this.handlers = null;
-
-	return this;
-};
-
-/**
- * Формирует хеш параметоров с помощью this.prepareParams и вызывает все обработчики
- * @private
- * @param {Object} event
- */
-ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
-	var params = (this.prepareParams ? this.prepareParams(event) : event);
-
-	for(var i = 0, length = this.handlers.length; i < length; i++)
-		this.handlers[i](params);
-};
-
-/**
- * Создает массив обработчиков, вешает обработчик события браузера
- * @private
- */
-ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
-	this.handlers = [];
-
-	var code = this.target + '.on' + this.eventName.toLowerCase() +  '=function(event){self.genericHandler(event);};';
-
-	var self = this;
-	eval(code);
-};
-
-/**
- * Добавляет обработчик события в конец очереди обработчиков
- * @param {Function} handler обработчик события
- */
-ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
-	if ( this.handlers == null )
-		this.initHandlers();
-
-	this.handlers[this.handlers.length] = handler;
-};/** @include "index.js" */
-
-ModularGrid.Utils.CookieStore = {
-
-	setValue: function(name, value) {
-		ModularGrid.Utils.CookieStore.setCookie(name, value)
-	},
-
-	getValue: function(name) {
-		return ModularGrid.Utils.CookieStore.getCookie(name);
-	},
-
-	/**
-	 * Backend to save value
-	 * @private
-	 * @param {String} name имя сохраняемой переменной
-	 * @param {Object} value занчение сохраняемой переменной
-	 */
-	setCookie: function(name, value) {
-		var today = new Date(), expires = new Date();
-		expires.setTime(today.getTime() + 31536000000); //3600000 * 24 * 365
-
-		document.cookie = name + "=" + escape(value) + "; expires=" + expires;
-	},
-
-	/**
-	 * Backend to restore value
-	 * @private
-	 * @param {String} name имя сохранённой переменной
-	 * @return {Object} значение сохранённой переменной
-	 */
-	getCookie: function(name) {
-		var cookie = " " + document.cookie;
-		var search = " " + name + "=";
-		var setStr = null;
-		var offset = 0;
-		var end = 0;
-
-		if (cookie.length > 0) {
-			offset = cookie.indexOf(search);
-			if (offset != -1) {
-				offset += search.length;
-				end = cookie.indexOf(";", offset)
-				if (end == -1) {
-					end = cookie.length;
-				}
-				setStr = unescape(cookie.substring(offset, end));
-			}
-		}
-
-		return(setStr);
-	}
-
-};/** @include "index.js" */
-
-/**
- * Меняет состояние объекта по внешнему событию.
- * @constructor
- * @param {ModularGrid.EventProvider} eventProvider прослойка, чье событие слушать
- * @param {Function} shouldChange если вернет true при возникновении события от eventProvider, то вызовится stateChange
- * @param {Function} stateChange вызывается, когда нужно поменять состояние
- * @return {ModularGrid.StateChanger}
- */
-ModularGrid.Utils.StateChanger = function (eventProvider, shouldChange, stateChange) {
-	eventProvider.addHandler(
-		function (params) {
-			if ( shouldChange(params) )
-				stateChange();
-		}
-	);
-
-	return this;
-};
-/**
+ModularGrid.Utils = {};/**
  * @include "namespace.js"
  * @include "CookieStore.js"
+ * @include "StateChanger.js"
+ * @include "EventProvider.js"
+ * @include "EventSender.js"
  */
 ModularGrid.Utils = {
 
@@ -213,12 +90,13 @@ ModularGrid.Utils = {
 	 * @param {Object} params параметры для строки
 	 * @return {String} CSS-строка для свойства style
 	 */
-	createStyleValue: function (params) {
-		var styleParams = ModularGrid.Utils.createParams(ModularGrid.Utils.defaultStyleValueParams, params);
+	createStyleValue: function (params, defaultParams) {
+		var fromParams = defaultParams || ModularGrid.Utils.defaultStyleValueParams;
+		var styleParams = ModularGrid.Utils.createParams(fromParams, params);
 
 		var result = '';
 		for (var key in styleParams) {
-			if ( styleParams[key] )
+			if ( styleParams[key] || styleParams[key] === 0 )
 				result += key + ':' + styleParams[key] + ';';
 
 			if ( styleParams[key] == 'opacity')
@@ -228,7 +106,172 @@ ModularGrid.Utils = {
 		return result;
 	}
 
-};/** @include "../index.js" */
+};/** @include "index.js" */
+
+/**
+ * Обертка события от браузера.
+ * @constructor
+ * @param {String} eventName название события, например "keydown"
+ * @param {Function} prepareParams преобразователь event браузера в хеш для обработчика
+ * @return {ModularGrid.EventProvider}
+ */
+ModularGrid.Utils.EventProvider = function(eventName, prepareParams, target) {
+	this.eventName = eventName;
+	this.prepareParams = prepareParams;
+	this.target = target || 'document';
+
+	this.handlers = null;
+
+	return this;
+};
+
+/**
+ * Формирует хеш параметоров с помощью this.prepareParams и вызывает все обработчики
+ * @private
+ * @param {Object} event
+ */
+ModularGrid.Utils.EventProvider.prototype.genericHandler = function(event) {
+	var params = (this.prepareParams ? this.prepareParams(event) : event);
+
+	for(var i = 0, length = this.handlers.length; i < length; i++)
+		this.handlers[i](params);
+};
+
+/**
+ * Создает массив обработчиков, вешает обработчик события браузера
+ * @private
+ */
+ModularGrid.Utils.EventProvider.prototype.initHandlers = function () {
+	this.handlers = [];
+
+	var code = this.target + '.on' + this.eventName.toLowerCase() +  '=function(event){self.genericHandler(event);};';
+
+	var self = this;
+	eval(code);
+};
+
+/**
+ * Добавляет обработчик события в конец очереди обработчиков
+ * @param {Function} handler обработчик события
+ */
+ModularGrid.Utils.EventProvider.prototype.addHandler = function (handler) {
+	if ( this.handlers == null )
+		this.initHandlers();
+
+	this.handlers[this.handlers.length] = handler;
+};/** @include "index.js" */
+
+/**
+ * Объект, который умеет посылать события.
+ * @constructor
+ * @return {ModularGrid.EventSender}
+ */
+ModularGrid.Utils.EventSender = function() {
+	this.handlers = {};
+
+	return this;
+};
+
+/**
+ * Добавляет обработчик события в конец очереди обработчиков
+ * @param {String} eventName название события
+ * @param {Function} handler обработчик события
+ */
+ModularGrid.Utils.EventSender.prototype.addHandler = function (eventName, handler) {
+	if ( !this.handlers[eventName] ) {
+		this.handlers[eventName] = [];
+	}
+
+	this.handlers[eventName][this.handlers[eventName].length] = handler;
+};
+
+/**
+ * Вызывает обработчики события с указанными параметрами
+ * @param {String} eventName название события
+ * @param {Object} params параметры обработчиков событий
+ */
+ModularGrid.Utils.EventSender.prototype.occurEvent = function (eventName, params) {
+	var target = this.handlers[eventName];
+
+	if ( this.handlers[eventName] ) {
+		for(var i = 0, length = this.handlers[eventName].length; i < length; i++ ) {
+			this.handlers[eventName][i](params);
+		}
+	}
+};/** @include "index.js" */
+
+ModularGrid.Utils.CookieStore = {
+
+	setValue: function(name, value) {
+		ModularGrid.Utils.CookieStore.setCookie(name, value)
+	},
+
+	getValue: function(name) {
+		return ModularGrid.Utils.CookieStore.getCookie(name);
+	},
+
+	/**
+	 * Backend to save value
+	 * @private
+	 * @param {String} name имя сохраняемой переменной
+	 * @param {Object} value занчение сохраняемой переменной
+	 */
+	setCookie: function(name, value) {
+		var today = new Date(), expires = new Date();
+		expires.setTime(today.getTime() + 31536000000); //3600000 * 24 * 365
+
+		document.cookie = name + "=" + escape(value) + "; expires=" + expires;
+	},
+
+	/**
+	 * Backend to restore value
+	 * @private
+	 * @param {String} name имя сохранённой переменной
+	 * @return {Object} значение сохранённой переменной
+	 */
+	getCookie: function(name) {
+		var cookie = " " + document.cookie;
+		var search = " " + name + "=";
+		var setStr = null;
+		var offset = 0;
+		var end = 0;
+
+		if (cookie.length > 0) {
+			offset = cookie.indexOf(search);
+			if (offset != -1) {
+				offset += search.length;
+				end = cookie.indexOf(";", offset)
+				if (end == -1) {
+					end = cookie.length;
+				}
+				setStr = unescape(cookie.substring(offset, end));
+			}
+		}
+
+		return(setStr);
+	}
+
+};/** @include "index.js" */
+
+/**
+ * Меняет состояние объекта по внешнему событию.
+ * @constructor
+ * @param {ModularGrid.EventProvider} eventProvider прослойка, чье событие слушать
+ * @param {Function} shouldChange если вернет true при возникновении события от eventProvider, то вызовится stateChange
+ * @param {Function} stateChange вызывается, когда нужно поменять состояние
+ * @return {ModularGrid.StateChanger}
+ */
+ModularGrid.Utils.StateChanger = function (eventProvider, shouldChange, stateChange) {
+	eventProvider.addHandler(
+		function (params) {
+			if ( shouldChange(params) )
+				stateChange();
+		}
+	);
+
+	return this;
+};
+/** @include "../index.js" */
 
 ModularGrid.OpacityChanger = {};/** @include "index.js" */
 
@@ -270,8 +313,8 @@ ModularGrid.OpacityChanger.defaults = {
 
 	params: null,
 
-	/** @type Array */
-	handlers: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -281,7 +324,7 @@ ModularGrid.OpacityChanger.defaults = {
 	 */
 	init: function(params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
-		this.handlers = [];
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	setOpacity: function(value) {
@@ -302,13 +345,8 @@ ModularGrid.OpacityChanger.defaults = {
 		return this.setOpacity(this.params.opacity + this.params.opacityStep);
 	},
 
-	addHandler: function (handler) {
-		this.handlers[this.handlers.length] = handler;
-	},
-
 	updateOpacity: function(opacity) {
-		for(var i = 0, length = this.handlers.length; i < length; i++)
-			this.handlers[i]();
+		this.eventSender.occurEvent('opacityChanged', this.params.opacity);
 	},
 
 	changeElementOpacity: function (element) {
@@ -387,6 +425,8 @@ ModularGrid.Image = {
 	params: null,
 
 	imgElement: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -396,6 +436,7 @@ ModularGrid.Image = {
 	 */
 	init: function(params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -485,6 +526,7 @@ ModularGrid.Image = {
 	 */
 	toggleVisibility: function() {
 		this.showing = !this.showing;
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		if (this.showing && this.parentElement == null) {
 			this.parentElement = this.createParentElement(this.params);
@@ -548,6 +590,8 @@ ModularGrid.Guides = {
 	parentElement: null,
 
 	params: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -555,6 +599,7 @@ ModularGrid.Guides = {
 	 */
 	init: function (params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -675,6 +720,7 @@ ModularGrid.Guides = {
 	 */
 	toggleVisibility: function () {
 		this.showing = !this.showing;
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		if ( this.showing && this.parentElement == null ) {
 			this.parentElement = this.createParentElement(this.params);
@@ -834,12 +880,16 @@ ModularGrid.Grid = {
 	 */
 	params: null,
 
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
+
 	/**
 	 * Устанавливает настройки для гайдов
 	 * @param {Object} params параметры гайдов
 	 */
 	init: function (params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -1121,8 +1171,15 @@ ModularGrid.Grid = {
 		this.showing = !this.showing;
 
 		this.fontGridShowing = this.showing;
+		this.eventSender.occurEvent('fontVisibilityChanged', this.fontGridShowing);
+
 		this.horizontalGridShowing = this.showing;
+		this.eventSender.occurEvent('horizontalVisibilityChanged', this.horizontalGridShowing);
+
 		this.verticalGridShowing = this.showing;
+		this.eventSender.occurEvent('verticalVisibilityChanged', this.verticalGridShowing);
+
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		this.updateFontGridVisibility();
 		this.updateHorizontalGridVisibility();
@@ -1153,29 +1210,41 @@ ModularGrid.Grid = {
 			this.verticalGridParentElement.style.display = ( this.verticalGridShowing ? 'block' : 'none' );
 	},
 
-	toggleHorizontalGridVisibility: function () {
+	toggleHorizontalGridVisibility: function (do_not_send_events) {
 		this.horizontalGridShowing = !this.horizontalGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('horizontalVisibilityChanged', this.horizontalGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateHorizontalGridVisibility();
 	},
 
-	toggleVerticalGridVisibility: function () {
+	toggleVerticalGridVisibility: function (do_not_send_events) {
 		this.verticalGridShowing = !this.verticalGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('verticalVisibilityChanged', this.verticalGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateVerticalGridVisibility();
 	},
 
-	toggleFontGridVisibility: function () {
+	toggleFontGridVisibility: function (do_not_send_events) {
 		this.fontGridShowing = !this.fontGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('fontVisibilityChanged', this.fontGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateFontGridVisibility();
 	},
 
-	updateShowing: function () {
+	updateShowing: function (do_not_send_events) {
 		this.showing = this.fontGridShowing || this.horizontalGridShowing || this.verticalGridShowing;
+
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('visibilityChanged', this.showing);
 	}
 
 };/** @include "../index.js" */
@@ -1214,6 +1283,9 @@ ModularGrid.Resizer = {
 	currentSizeIndex: null,
 
 	title: null,
+
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	detectDefaultSize: function () {
 		var result = null;
@@ -1259,6 +1331,7 @@ ModularGrid.Resizer = {
 	 */
 	init: function (params, grid) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 
 		var defaultSize = this.detectDefaultSize();
 		if ( defaultSize ) {
@@ -1283,23 +1356,343 @@ ModularGrid.Resizer = {
 		}
 	},
 
+	sizeTitle: function(index) {
+		var result, current_size = this.sizes[index], default_size = this.sizes[0];
+		if ( current_size.title ) {
+			result = current_size.title;
+		}
+		else {
+			var width = ( current_size.width ? current_size.width : default_size.width );
+			var height = ( current_size.height ? current_size.height : default_size.height );
+
+			result = width + '×' + height;
+		}
+
+		return result;
+	},
+
+	selectSize: function(index) {
+		this.currentSizeIndex = index;
+
+		this.applySize();
+	},
+
 	toggleSize: function () {
 		if ( this.currentSizeIndex != null ) {
 			this.currentSizeIndex++;
 			this.currentSizeIndex = ( this.currentSizeIndex == this.sizes.length ? 0 : this.currentSizeIndex );
 
-			var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
-			var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
+			this.applySize();
+		}
+	},
 
-			window.resizeTo(width, height);
+	applySize: function () {
+		var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
+		var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
 
-			if ( this.params.changeTitle ) {
-				var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
-				if ( this.getCurrentSize().title )
-					titleText = this.getCurrentSize().title;
+		window.resizeTo(width, height);
 
-				document.title = titleText;
+		if ( this.params.changeTitle ) {
+			var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
+			if ( this.getCurrentSize().title )
+				titleText = this.getCurrentSize().title;
+
+			document.title = titleText;
+		}
+
+		this.eventSender.occurEvent('sizeChanged', this.currentSizeIndex);
+	}
+
+};/**
+ * @include "../index.js"
+ * @include "defaults.js"
+ */
+
+ModularGrid.GUI = {
+
+	params: null,
+
+	togglerElement: null,
+
+	paneElement: null,
+	paneShowing: false,
+
+	checkboxes: {},
+
+	init: function(params) {
+		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+	},
+
+	create: function() {
+		this.createToggler();
+		this.createPane();
+	},
+
+	createToggler: function() {
+		var self = this;
+
+		self.togglerElement = document.createElement("button");
+		self.togglerElement.innerHTML = self.params.toggler.label;
+
+		var styleValue = ModularGrid.Utils.createStyleValue(self.params.toggler.style, {});
+		self.togglerElement.setAttribute("style", styleValue);
+
+		// добавляем элемент в DOM
+		ModularGrid.Utils.getDocumentBodyElement().appendChild(self.togglerElement);
+
+
+		self.togglerElement.onclick = function () {
+			self.paneShowing = !self.paneShowing;
+
+			self.paneElement.style.display = (self.paneShowing ? 'block' : 'none');
+		}
+	},
+
+	createPaneCheckboxItemHTML: function (id, label, style) {
+		var currentStyle = style || '';
+
+		var html = '<div style="width:auto;' + currentStyle + '">';
+		html += '<input type="checkbox" id="' + id + '">';
+		html += '<label for="' + id + '">&nbsp;' + label + '</label>';
+		html += '</div>';
+
+		return html;
+	},
+
+	createPane: function() {
+		var self = this;
+		self.paneElement = document.createElement("div");
+
+		var currentStyle = self.params.pane.style;
+		currentStyle.display = 'none';
+
+		var styleValue = ModularGrid.Utils.createStyleValue(currentStyle, {});
+		self.paneElement.setAttribute("style", styleValue);
+
+		var ids = {}, html = '';
+
+		ids.guides = self.generateId() + 'guides';
+		html += self.createPaneCheckboxItemHTML(ids.guides, self.params.pane.labels.guides);
+
+
+		ids.grid = self.generateId() + 'grid';
+		html += self.createPaneCheckboxItemHTML(ids.grid, self.params.pane.labels.grid.all, 'margin:1em 0 0');
+
+		ids.font_grid = self.generateId() + 'fontgrid';
+		html += self.createPaneCheckboxItemHTML(ids.font_grid, self.params.pane.labels.grid.font, 'padding:0 0 0 1em');
+
+		ids.vertical_grid = self.generateId() + 'verticalgrid';
+		html += self.createPaneCheckboxItemHTML(ids.vertical_grid, self.params.pane.labels.grid.vertical, 'padding:0 0 0 1em');
+
+		ids.horizontal_grid = self.generateId() + 'horizontalgrid';
+		html += self.createPaneCheckboxItemHTML(ids.horizontal_grid, self.params.pane.labels.grid.horizontal, 'padding:0 0 1em 1em');
+
+
+		ids.image = self.generateId() + 'image';
+		html += self.createPaneCheckboxItemHTML(ids.image, self.params.pane.labels.image, 'margin:0 0 1em');
+
+
+		if ( ModularGrid.Resizer.sizes.length ) {
+			html += '<div style="width:auto">';
+			ids.sizes = self.generateId() + 'sizes';
+			html += '<select size="1" id="' + ids.sizes + '"><option>' + this.params.pane.labels.size + '</option></select>';
+			html += '</div>';
+		}
+
+		html += '<div style="width:auto;margin:1em 0 0">';
+		ids.opacity_down = self.generateId() + 'opacitydown';
+		ids.opacity_up = self.generateId() + 'opacityup';
+		ids.opacity_value = self.generateId() + 'opacityvalue';
+		if ( self.params.pane.labels.opacity )
+			html += self.params.pane.labels.opacity + '<br>';
+		html += '<button id="' + ids.opacity_down + '">-</button>&nbsp;';
+		html += '<span id="' + ids.opacity_value +'">' + ModularGrid.OpacityChanger.params.opacity.toFixed(2) + '</span>';
+		html += '&nbsp;<button id="' + ids.opacity_up + '">+</button>';
+		html += '</div>';
+
+		self.paneElement.innerHTML = html;
+
+		// добавляем элемент в DOM
+		ModularGrid.Utils.getDocumentBodyElement().appendChild(this.paneElement);
+
+		self.checkboxes.guides = document.getElementById(ids.guides);
+		if ( self.checkboxes.guides ) {
+			self.checkboxes.guides.onclick = function () {
+				ModularGrid.Guides.toggleVisibility();
+			};
+			ModularGrid.Guides.eventSender.addHandler(
+				'visibilityChanged',
+				function(visible) {
+					self.checkboxes.guides.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.grid = document.getElementById(ids.grid);
+		if ( self.checkboxes.grid ) {
+			self.checkboxes.grid.onclick = function () {
+				ModularGrid.Grid.toggleVisibility();
+			};
+			ModularGrid.Grid.eventSender.addHandler(
+				'visibilityChanged',
+				function(visible) {
+					self.checkboxes.grid.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.font_grid = document.getElementById(ids.font_grid);
+		if ( self.checkboxes.font_grid ) {
+			self.checkboxes.font_grid.onclick = function () {
+				ModularGrid.Grid.toggleFontGridVisibility();
+			};
+			ModularGrid.Grid.eventSender.addHandler(
+				'fontVisibilityChanged',
+				function(visible) {
+					self.checkboxes.font_grid.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.vertical_grid = document.getElementById(ids.vertical_grid);
+		if ( self.checkboxes.vertical_grid ) {
+			self.checkboxes.vertical_grid.onclick = function () {
+				ModularGrid.Grid.toggleVerticalGridVisibility();
+			};
+			ModularGrid.Grid.eventSender.addHandler(
+				'verticalVisibilityChanged',
+				function(visible) {
+					self.checkboxes.vertical_grid.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.horizontal_grid = document.getElementById(ids.horizontal_grid);
+		if ( self.checkboxes.horizontal_grid ) {
+			self.checkboxes.horizontal_grid.onclick = function () {
+				ModularGrid.Grid.toggleHorizontalGridVisibility();
+			};
+			ModularGrid.Grid.eventSender.addHandler(
+				'horizontalVisibilityChanged',
+				function(visible) {
+					self.checkboxes.horizontal_grid.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.image = document.getElementById(ids.image);
+		if ( self.checkboxes.image ) {
+			self.checkboxes.image.onclick = function () {
+				ModularGrid.Image.toggleVisibility();
+			};
+			ModularGrid.Image.eventSender.addHandler(
+				'visibilityChanged',
+				function(visible) {
+					self.checkboxes.image.checked = visible;
+				}
+			);
+		}
+
+		self.checkboxes.sizes = document.getElementById(ids.sizes);
+		if ( self.checkboxes.sizes ) {
+			var current_html = '';
+			for(var i = 0, length = ModularGrid.Resizer.sizes.length; i < length; i++) {
+				current_html += '<option>' + ModularGrid.Resizer.sizeTitle(i) + '</option>';
 			}
+			self.checkboxes.sizes.innerHTML += current_html;
+
+			self.checkboxes.sizes.onchange = function () {
+				ModularGrid.Resizer.selectSize(self.checkboxes.sizes.selectedIndex - 1);
+			};
+
+			ModularGrid.Resizer.eventSender.addHandler(
+				'sizeChanged',
+				function(index) {
+					self.checkboxes.sizes.selectedIndex = index + 1;
+				}
+			);
+		}
+
+		self.checkboxes.opacity_value = document.getElementById(ids.opacity_value);
+		if ( self.checkboxes.opacity_value ) {
+			ModularGrid.OpacityChanger.eventSender.addHandler(
+				'opacityChanged',
+				function(opacity) {
+					self.checkboxes.opacity_value.innerHTML = opacity.toFixed(2);
+				}
+			);
+		}
+
+		self.checkboxes.opacity_up = document.getElementById(ids.opacity_up);
+		if ( self.checkboxes.opacity_up ) {
+			self.checkboxes.opacity_up.onclick = function () {
+				ModularGrid.OpacityChanger.stepUpOpacity();
+			}
+		}
+
+		self.checkboxes.opacity_down = document.getElementById(ids.opacity_down);
+		if ( self.checkboxes.opacity_down ) {
+			self.checkboxes.opacity_down.onclick = function () {
+				ModularGrid.OpacityChanger.stepDownOpacity();
+			}
+		}
+	},
+
+	/**
+	 * @private
+	 * @return {String} уникальный идентификатор
+	 */
+	generateId: function() {
+		var prefix = '_mdg', result = new Date();
+		result = prefix + result.getTime();
+
+		return result;
+	}
+
+}/** @include "index.js */
+
+ModularGrid.GUI.defaults = {
+
+	toggler: {
+		style: {
+			position: "absolute",
+			right: '10px',
+			top: '10px',
+			'z-index': 1000
+		},
+
+		label: "Настройки сетки"
+	},
+
+	pane: {
+		style: {
+			position: "absolute",
+			right: '10px',
+			top: '35px',
+
+			width: 'auto',
+			height: 'auto',
+
+			margin: '0',
+			padding: '7px 5px',
+
+			background: '#FFF',
+			border: '2px solid #CCC',
+
+			'z-index': 1000
+		},
+
+		labels: {
+			guides: "гайды",
+			image: "изображение-макет",
+			size: "выберите размер",
+			grid: {
+				all: "сетка",
+				font: "шрифтовая",
+				vertical: "вертикальная",
+				horizontal: "горизонтальная"
+			},
+			opacity: "прозрачность"
 		}
 	}
 
@@ -1310,6 +1703,7 @@ ModularGrid.Resizer = {
  * @include "Guides/index.js"
  * @include "Resizer/index.js"
  * @include "OpacityChanger/index.js"
+ * @include "GUI/index.js"
  */
 
 ModularGrid.keyDownEventProvider = null;
@@ -1413,7 +1807,7 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepUpOpacity,
 			function () {
-				store.setValue('o', self.OpacityChanger.stepUpOpacity());
+				self.OpacityChanger.stepUpOpacity();
 			}
 		);
 	var opacityDownChanger =
@@ -1421,50 +1815,66 @@ ModularGrid.init = function (params) {
 			this.getKeyDownEventProvider(),
 			this.OpacityChanger.params.shouldStepDownOpacity,
 			function () {
-				store.setValue('o', self.OpacityChanger.stepDownOpacity());
+				self.OpacityChanger.stepDownOpacity();
 			}
 		);
+	this.OpacityChanger.eventSender.addHandler(
+		'opacityChanged',
+		function(opacity) {
+			store.setValue('o', opacity);
+		}
+	);
 
 	// изображение
 	this.Image.init(params.image);
-	this.OpacityChanger.addHandler(this.Image.opacityHandler);
+	this.OpacityChanger.eventSender.addHandler('opacityChanged', this.Image.opacityHandler);
 	var imageStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Image.params.shouldToggleVisibility,
 			function () {
 				self.Image.toggleVisibility();
-				store.setValue('i', self.Image.showing);
+//				store.setValue('i', self.Image.showing);
 			}
 		);
 
 	// гайды
-	this.Guides.init(params.guides);
+	self.Guides.init(params.guides);
 	var guidesStateChanger =
 		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Guides.params.shouldToggleVisibility,
+			self.getKeyDownEventProvider(),
+			self.Guides.params.shouldToggleVisibility,
 			function () {
 				self.Guides.toggleVisibility();
-				store.setValue('g', self.Guides.showing);
 			}
 		);
+	self.Guides.eventSender.addHandler(
+		'visibilityChanged',
+		function(visible) {
+			store.setValue('g', visible);
+		}
+	);
 
 	// сетка
 	this.Grid.init(params.grid);
-	this.OpacityChanger.addHandler(this.Grid.opacityHandler);
+	this.OpacityChanger.eventSender.addHandler('opacityChanged', this.Grid.opacityHandler);
 	var gridStateChanger =
 		new ModularGrid.Utils.StateChanger(
 			this.getKeyDownEventProvider(),
 			this.Grid.params.shouldToggleVisibility,
 			function () {
 				self.Grid.toggleVisibility();
-
-				store.setValue('v', self.Grid.verticalGridShowing);
-				store.setValue('h', self.Grid.horizontalGridShowing);
-				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'visibilityChanged',
+		function(visible) {
+			store.setValue('v', self.Grid.verticalGridShowing);
+			store.setValue('h', self.Grid.horizontalGridShowing);
+			store.setValue('f', self.Grid.fontGridShowing);
+		}
+	);
+
 
 	var gridFontGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -1472,9 +1882,15 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleFontGridVisibility,
 			function () {
 				self.Grid.toggleFontGridVisibility();
-				store.setValue('f', self.Grid.fontGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'fontVisibilityChanged',
+		function(visible) {
+			store.setValue('f', self.Grid.fontGridShowing);
+		}
+	);
+
 
 	var gridHorizontalGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -1482,9 +1898,15 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleHorizontalGridVisibility,
 			function () {
 				self.Grid.toggleHorizontalGridVisibility();
-				store.setValue('h', self.Grid.horizontalGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'horizontalVisibilityChanged',
+		function(visible) {
+			store.setValue('h', self.Grid.horizontalGridShowing);
+		}
+	);
+
 
 	var gridVerticalGridVisibilityChanger =
 		new ModularGrid.Utils.StateChanger(
@@ -1492,20 +1914,27 @@ ModularGrid.init = function (params) {
 			this.Grid.params.shouldToggleVerticalGridVisibility,
 			function () {
 				self.Grid.toggleVerticalGridVisibility();
-				store.setValue('v', self.Grid.verticalGridShowing);
 			}
 		);
+	self.Grid.eventSender.addHandler(
+		'verticalVisibilityChanged',
+		function(visible) {
+			store.setValue('v', self.Grid.verticalGridShowing);
+		}
+	);
+
 
 	// resizer
-	this.Resizer.init(params.resizer, this.Grid);
+	self.Resizer.init(params.resizer, self.Grid);
 	var resizerSizeChanger =
 		new ModularGrid.Utils.StateChanger(
-			this.getKeyDownEventProvider(),
-			this.Resizer.params.shouldToggleSize,
+			self.getKeyDownEventProvider(),
+			self.Resizer.params.shouldToggleSize,
 			function () {
 				self.Resizer.toggleSize();
 			}
 		);
+
 
 	// change dimensions by window resize
 	ModularGrid.getResizeEventProvider().addHandler(
@@ -1520,7 +1949,9 @@ ModularGrid.init = function (params) {
 		}
 	);
 
-	//
+	self.GUI.init(params.gui);
+	self.GUI.create();
+
 	// восстанавливаем состояния из кук
 	// по-умолчанию: всё скрыто
 	if ( store.getValue('i') == 'true' )
@@ -1535,15 +1966,15 @@ ModularGrid.init = function (params) {
 		self.Guides.toggleVisibility();
 
 	if ( store.getValue('v') == 'true' )
-		self.Grid.toggleVerticalGridVisibility();
+		self.Grid.toggleVerticalGridVisibility(true);
 
 	if ( store.getValue('h') == 'true' )
-		self.Grid.toggleHorizontalGridVisibility();
+		self.Grid.toggleHorizontalGridVisibility(true);
 
 	if ( store.getValue('f') == 'true' )
-		self.Grid.toggleFontGridVisibility();
+		self.Grid.toggleFontGridVisibility(true);
 
-	self.Grid.updateShowing();
+	self.Grid.updateShowing(true);
 };/** @include "index.js" */
 
 /**

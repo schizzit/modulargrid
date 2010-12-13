@@ -1,6 +1,9 @@
 /**
  * @include "namespace.js"
  * @include "CookieStore.js"
+ * @include "StateChanger.js"
+ * @include "EventProvider.js"
+ * @include "EventSender.js"
  */
 ModularGrid.Utils = {
 
@@ -85,12 +88,13 @@ ModularGrid.Utils = {
 	 * @param {Object} params параметры для строки
 	 * @return {String} CSS-строка для свойства style
 	 */
-	createStyleValue: function (params) {
-		var styleParams = ModularGrid.Utils.createParams(ModularGrid.Utils.defaultStyleValueParams, params);
+	createStyleValue: function (params, defaultParams) {
+		var fromParams = defaultParams || ModularGrid.Utils.defaultStyleValueParams;
+		var styleParams = ModularGrid.Utils.createParams(fromParams, params);
 
 		var result = '';
 		for (var key in styleParams) {
-			if ( styleParams[key] )
+			if ( styleParams[key] || styleParams[key] === 0 )
 				result += key + ':' + styleParams[key] + ';';
 
 			if ( styleParams[key] == 'opacity')

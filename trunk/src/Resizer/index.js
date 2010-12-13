@@ -8,6 +8,9 @@ ModularGrid.Resizer = {
 
 	title: null,
 
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
+
 	detectDefaultSize: function () {
 		var result = null;
 
@@ -52,6 +55,7 @@ ModularGrid.Resizer = {
 	 */
 	init: function (params, grid) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 
 		var defaultSize = this.detectDefaultSize();
 		if ( defaultSize ) {
@@ -76,24 +80,51 @@ ModularGrid.Resizer = {
 		}
 	},
 
+	sizeTitle: function(index) {
+		var result, current_size = this.sizes[index], default_size = this.sizes[0];
+		if ( current_size.title ) {
+			result = current_size.title;
+		}
+		else {
+			var width = ( current_size.width ? current_size.width : default_size.width );
+			var height = ( current_size.height ? current_size.height : default_size.height );
+
+			result = width + '×' + height;
+		}
+
+		return result;
+	},
+
+	selectSize: function(index) {
+		this.currentSizeIndex = index;
+
+		this.applySize();
+	},
+
 	toggleSize: function () {
 		if ( this.currentSizeIndex != null ) {
 			this.currentSizeIndex++;
 			this.currentSizeIndex = ( this.currentSizeIndex == this.sizes.length ? 0 : this.currentSizeIndex );
 
-			var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
-			var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
-
-			window.resizeTo(width, height);
-
-			if ( this.params.changeTitle ) {
-				var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
-				if ( this.getCurrentSize().title )
-					titleText = this.getCurrentSize().title;
-
-				document.title = titleText;
-			}
+			this.applySize();
 		}
+	},
+
+	applySize: function () {
+		var width = ( this.getCurrentSize().width ? this.getCurrentSize().width : this.getDefaultSize().width );
+		var height = ( this.getCurrentSize().height ? this.getCurrentSize().height : this.getDefaultSize().height );
+
+		window.resizeTo(width, height);
+
+		if ( this.params.changeTitle ) {
+			var titleText = ( this.currentSizeIndex ? this.title + ' (' + width + '×' + height + ')' : this.title );
+			if ( this.getCurrentSize().title )
+				titleText = this.getCurrentSize().title;
+
+			document.title = titleText;
+		}
+
+		this.eventSender.occurEvent('sizeChanged', this.currentSizeIndex);
 	}
 
 };

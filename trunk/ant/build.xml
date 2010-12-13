@@ -33,10 +33,11 @@
 				<file name="namespace.js"/>
 
 				<file name="Utils/namespace.js"/>
+				<file name="Utils/index.js"/>
 				<file name="Utils/EventProvider.js"/>
+				<file name="Utils/EventSender.js"/>
 				<file name="Utils/CookieStore.js"/>
 				<file name="Utils/StateChanger.js"/>
-				<file name="Utils/index.js"/>
 
 				<file name="OpacityChanger/namespace.js"/>
 				<file name="OpacityChanger/defaults.js"/>
@@ -57,6 +58,9 @@
 				<file name="Resizer/namespace.js"/>
 				<file name="Resizer/defaults.js"/>
 				<file name="Resizer/index.js"/>
+
+				<file name="GUI/index.js"/>
+				<file name="GUI/defaults.js"/>
 
 				<file name="index.js"/>
 			</filelist>
