@@ -7,6 +7,8 @@ ModularGrid.Image = {
 	params: null,
 
 	imgElement: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -16,6 +18,7 @@ ModularGrid.Image = {
 	 */
 	init: function(params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -105,6 +108,7 @@ ModularGrid.Image = {
 	 */
 	toggleVisibility: function() {
 		this.showing = !this.showing;
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		if (this.showing && this.parentElement == null) {
 			this.parentElement = this.createParentElement(this.params);

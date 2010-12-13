@@ -2,8 +2,8 @@ ModularGrid.OpacityChanger = {
 
 	params: null,
 
-	/** @type Array */
-	handlers: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -13,7 +13,7 @@ ModularGrid.OpacityChanger = {
 	 */
 	init: function(params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
-		this.handlers = [];
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	setOpacity: function(value) {
@@ -34,13 +34,8 @@ ModularGrid.OpacityChanger = {
 		return this.setOpacity(this.params.opacity + this.params.opacityStep);
 	},
 
-	addHandler: function (handler) {
-		this.handlers[this.handlers.length] = handler;
-	},
-
 	updateOpacity: function(opacity) {
-		for(var i = 0, length = this.handlers.length; i < length; i++)
-			this.handlers[i]();
+		this.eventSender.occurEvent('opacityChanged', this.params.opacity);
 	},
 
 	changeElementOpacity: function (element) {

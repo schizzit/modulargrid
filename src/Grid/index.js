@@ -23,12 +23,16 @@ ModularGrid.Grid = {
 	 */
 	params: null,
 
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
+
 	/**
 	 * Устанавливает настройки для гайдов
 	 * @param {Object} params параметры гайдов
 	 */
 	init: function (params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -310,8 +314,15 @@ ModularGrid.Grid = {
 		this.showing = !this.showing;
 
 		this.fontGridShowing = this.showing;
+		this.eventSender.occurEvent('fontVisibilityChanged', this.fontGridShowing);
+
 		this.horizontalGridShowing = this.showing;
+		this.eventSender.occurEvent('horizontalVisibilityChanged', this.horizontalGridShowing);
+
 		this.verticalGridShowing = this.showing;
+		this.eventSender.occurEvent('verticalVisibilityChanged', this.verticalGridShowing);
+
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		this.updateFontGridVisibility();
 		this.updateHorizontalGridVisibility();
@@ -342,29 +353,41 @@ ModularGrid.Grid = {
 			this.verticalGridParentElement.style.display = ( this.verticalGridShowing ? 'block' : 'none' );
 	},
 
-	toggleHorizontalGridVisibility: function () {
+	toggleHorizontalGridVisibility: function (do_not_send_events) {
 		this.horizontalGridShowing = !this.horizontalGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('horizontalVisibilityChanged', this.horizontalGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateHorizontalGridVisibility();
 	},
 
-	toggleVerticalGridVisibility: function () {
+	toggleVerticalGridVisibility: function (do_not_send_events) {
 		this.verticalGridShowing = !this.verticalGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('verticalVisibilityChanged', this.verticalGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateVerticalGridVisibility();
 	},
 
-	toggleFontGridVisibility: function () {
+	toggleFontGridVisibility: function (do_not_send_events) {
 		this.fontGridShowing = !this.fontGridShowing;
-		this.updateShowing();
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('fontVisibilityChanged', this.fontGridShowing);
+
+		this.updateShowing(do_not_send_events);
 
 		this.updateFontGridVisibility();
 	},
 
-	updateShowing: function () {
+	updateShowing: function (do_not_send_events) {
 		this.showing = this.fontGridShowing || this.horizontalGridShowing || this.verticalGridShowing;
+
+		if ( !do_not_send_events )
+			this.eventSender.occurEvent('visibilityChanged', this.showing);
 	}
 
 };

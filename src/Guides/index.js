@@ -6,6 +6,8 @@ ModularGrid.Guides = {
 	parentElement: null,
 
 	params: null,
+	/** @type {ModularGrid.Utils.EventSender} */
+	eventSender: null,
 
 	/**
 	 * Устанавливает настройки для гайдов
@@ -13,6 +15,7 @@ ModularGrid.Guides = {
 	 */
 	init: function (params) {
 		this.params = ModularGrid.Utils.createParams(this.defaults, params);
+		this.eventSender = new ModularGrid.Utils.EventSender();
 	},
 
 	/**
@@ -133,6 +136,7 @@ ModularGrid.Guides = {
 	 */
 	toggleVisibility: function () {
 		this.showing = !this.showing;
+		this.eventSender.occurEvent('visibilityChanged', this.showing);
 
 		if ( this.showing && this.parentElement == null ) {
 			this.parentElement = this.createParentElement(this.params);
